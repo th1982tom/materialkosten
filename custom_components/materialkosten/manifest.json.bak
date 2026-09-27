@@ -1,7 +1,7 @@
 {
   "domain": "materialkosten",
   "name": "Materialkosten",
-  "version": "0.7.1",
+  "version": "0.7.0",
   "documentation": "https://github.com/th1982tom/materialkosten",
   "issue_tracker": "https://github.com/th1982tom/materialkosten/issues",
   "codeowners": [],

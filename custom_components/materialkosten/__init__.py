@@ -3,8 +3,7 @@ from __future__ import annotations
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, ServiceCall
-from homeassistant.helpers import config_validation as cv
-import voluptuous as vol
+from homeassistant.components.http import StaticPathConfig
 
 from .const import (
     DOMAIN,
@@ -24,6 +23,29 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
     manager = MaterialManager(hass)
     await manager.async_load()
     hass.data[DOMAIN] = manager
+
+    # Register the integration's built-in frontend. No /local or /hacsfiles resource is required.
+    await hass.http.async_register_static_paths([
+        StaticPathConfig(
+            "/api/materialkosten/panel.js",
+            hass.config.path("custom_components/materialkosten/panel.js"),
+            cache_headers=False,
+        )
+    ])
+
+    try:
+        from homeassistant.components.frontend import async_register_built_in_panel
+        async_register_built_in_panel(
+            hass,
+            "custom",
+            "Materialkosten",
+            "mdi:cash-register",
+            "materialkosten",
+            config={"_panel_custom": True},
+        )
+    except Exception:
+        # The integration still works through its entities/services if the panel API changes.
+        pass
 
     async def add_project(call: ServiceCall):
         await manager.add_project(call.data["name"], call.data.get("customer", ""), call.data.get("note", ""))
