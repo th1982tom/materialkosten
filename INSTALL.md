@@ -1,23 +1,9 @@
 # Installation
 
-## HACS
+HACS Repository:
+https://github.com/th1982tom/materialkosten
 
-Repository als Custom Repository mit Typ `Integration` hinzufügen.
+Nach Installation und Neustart:
+Einstellungen → Geräte & Dienste → Integration hinzufügen → Materialkosten.
 
-## Manuell
-
-Den Ordner
-
-`custom_components/materialkosten`
-
-nach
-
-`/config/custom_components/materialkosten`
-
-kopieren.
-
-Die Datei
-
-`www/materialkosten-panel.js`
-
-ist für die Lovelace-Karte bestimmt.
+Es ist keine zusätzliche Lovelace-Ressource notwendig.
