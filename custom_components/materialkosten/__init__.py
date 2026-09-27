@@ -31,6 +31,9 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
     async def remove_project(call: ServiceCall):
         await manager.remove_project(call.data["project_id"])
 
+    async def update_project_status(call: ServiceCall):
+        await manager.update_project_status(call.data["project_id"], call.data["status"])
+
     async def add_item(call: ServiceCall):
         await manager.add_item(
             call.data["project_id"], call.data["material"], call.data["quantity"],
@@ -60,6 +63,7 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
 
     hass.services.async_register(DOMAIN, SERVICE_ADD_PROJECT, add_project)
     hass.services.async_register(DOMAIN, SERVICE_REMOVE_PROJECT, remove_project)
+    hass.services.async_register(DOMAIN, "update_project_status", update_project_status)
     hass.services.async_register(DOMAIN, SERVICE_ADD_ITEM, add_item)
     hass.services.async_register(DOMAIN, SERVICE_REMOVE_ITEM, remove_item)
     hass.services.async_register(DOMAIN, SERVICE_ADD_MATERIAL, add_material)

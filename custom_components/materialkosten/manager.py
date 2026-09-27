@@ -55,14 +55,23 @@ class MaterialManager:
             + sum(float(x["hours"]) * float(x["hourly_rate"]) for x in self.data["work"]), 2
         )
 
-    async def add_project(self, name, customer="", note=""):
+    async def add_project(self, name, customer="", note="", order_number="", status="offen"):
         pid = uuid4().hex
         self.data["projects"][pid] = {
             "id": pid, "name": name, "customer": customer, "note": note,
-            "created": datetime.now().isoformat()
+            "order_number": order_number, "status": status,
+            "created": datetime.now().isoformat(), "completed": None
         }
         await self.async_save()
         return pid
+
+    async def update_project_status(self, project_id, status):
+        project = self.data["projects"].get(project_id)
+        if not project:
+            return
+        project["status"] = status
+        project["completed"] = datetime.now().isoformat() if status == "abgeschlossen" else None
+        await self.async_save()
 
     async def remove_project(self, project_id):
         self.data["projects"].pop(project_id, None)

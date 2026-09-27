@@ -28,6 +28,10 @@ class MaterialProjectsSensor(SensorEntity):
             "materialien": list(self.manager.materials().values()),
             "projekte": [
                 {"id": p["id"], "name": p["name"], "customer": p.get("customer",""),
+                 "auftragsnummer": p.get("order_number",""),
+                 "status": p.get("status","offen"),
+                 "erstellt": p.get("created"),
+                 "abgeschlossen": p.get("completed"),
                  "material": self.manager.material_total(p["id"]),
                  "arbeitszeit": self.manager.work_total(p["id"]),
                  "kosten": self.manager.project_total(p["id"])}
