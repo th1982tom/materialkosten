@@ -77,3 +77,15 @@ Projekt:
 - Material: 25,00 €
 - Arbeit: 135,00 €
 - Gesamt: 160,00 €
+
+
+## Aufträge
+
+Ab Version 0.6.0 können Projekte zusätzlich verwaltet werden mit:
+
+- Auftragsnummer
+- Status: Offen / In Bearbeitung / Abgeschlossen
+- Abschlussdatum wird beim Status „Abgeschlossen“ automatisch gespeichert
+- Materialkosten
+- Arbeitskosten
+- Gesamtbetrag
