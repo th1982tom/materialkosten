@@ -34,3 +34,7 @@ Nach der Installation erscheint die Seite **Materialkosten** in der Home-Assista
 - Arbeitskosten
 - Projektgesamtbetrag
 - Gesamtsumme
+
+## v0.7.3
+
+- Fix: Dialoge bleiben beim Öffnen sichtbar und werden nicht durch Home-Assistant-State-Updates sofort geschlossen.
