@@ -69,12 +69,19 @@ class MaterialkostenPanel extends HTMLElement {
   }
   newProject() {
     this.dialog("Neues Projekt", `
+      <label>Auftragsnummer<input name="order" placeholder="z.B. 2026-001"></label>
       <label>Projektname<input name="name" required autofocus></label>
       <label>Kunde<input name="customer"></label>
+      <label>Status<select name="status">
+        <option value="offen">Offen</option>
+        <option value="in_bearbeitung">In Bearbeitung</option>
+        <option value="abgeschlossen">Abgeschlossen</option>
+      </select></label>
       <label>Notiz<textarea name="note" rows="3"></textarea></label>`,
       async f => {
         await this.call("add_project", {
-          name:f.get("name"), customer:f.get("customer") || "", note:f.get("note") || ""
+          name:f.get("name"), customer:f.get("customer") || "", note:f.get("note") || "",
+          order_number:f.get("order") || "", status:f.get("status") || "offen"
         });
       });
   }
@@ -161,8 +168,8 @@ class MaterialkostenPanel extends HTMLElement {
       </div>
       <div class="section"><b>Projekte</b></div>
       ${projects.length ? projects.map(p => `<div class="project">
-        <div class="pinfo"><div class="pname">${this.esc(p.name)}</div>
-        <div class="sub">${this.esc(p.customer || "Kein Kunde")}</div></div>
+        <div class="pinfo"><div class="pname">${this.esc(p.order_number ? p.order_number + " – " : "")}${this.esc(p.name)}</div>
+        <div class="sub">${this.esc(p.customer || "Kein Kunde")} · ${this.esc(p.status || "offen")}</div></div>
         <div class="breakdown"><span>Material ${Number(p.material||0).toFixed(2)} €</span><span>Arbeit ${Number(p.arbeitszeit||0).toFixed(2)} €</span><b>${Number(p.kosten||0).toFixed(2)} €</b></div>
         <div class="pactions">
           <button class="add" data-id="${p.id}" data-name="${this.esc(p.name)}">＋ Material</button><button class="work" data-id="${p.id}" data-name="${this.esc(p.name)}">＋ Arbeit</button>
