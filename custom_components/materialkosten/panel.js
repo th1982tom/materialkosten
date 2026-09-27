@@ -1,5 +1,5 @@
 class MaterialkostenPanel extends HTMLElement {
-  set hass(hass){this._hass=hass;this.render()}
+  set hass(hass){this._hass=hass;if(!this._dialog)this.render()}
   setConfig(c){this.config=c||{};this.render()}
   esc(v){return String(v??"").replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
   attrs(){return this._hass.states["sensor.materialkosten_projekte"]?.attributes||{}}
@@ -50,7 +50,7 @@ class MaterialkostenPanel extends HTMLElement {
   status(id,status){return this.call("update_project_status",{project_id:id,status})}
   async remove(id,name){if(confirm(`Auftrag "${name}" wirklich löschen?`))await this.call("remove_project",{project_id:id})}
   render(){
-    if(!this._hass)return;
+    if(!this._hass || this._dialog)return;
     const a=this.attrs(),ps=a.projekte||[],ms=a.materialien||[],total=Number(this._hass.states["sensor.materialkosten_gesamt"]?.state||0);
     this.innerHTML=`<style>
       :host{display:block;padding:24px;box-sizing:border-box}.wrap{max-width:1100px;margin:auto}

@@ -38,3 +38,8 @@ Nach der Installation erscheint die Seite **Materialkosten** in der Home-Assista
 ## v0.7.3
 
 - Fix: Dialoge bleiben beim Öffnen sichtbar und werden nicht durch Home-Assistant-State-Updates sofort geschlossen.
+
+## v0.7.4
+
+- Fix: Auftrags-, Material- und Arbeitszeitdialoge bleiben bei Home-Assistant-State-Updates geöffnet.
+- Frontend-Modul erhält eine neue Versionskennung zur Vermeidung von Browser-Caching.
