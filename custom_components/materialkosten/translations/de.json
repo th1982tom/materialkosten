@@ -1,0 +1,13 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Materialkosten",
+        "description": "Richtet die Materialkosten-Erfassung ein.",
+        "data": {
+          "name": "Name"
+        }
+      }
+    }
+  }
+}
