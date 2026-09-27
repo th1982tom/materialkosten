@@ -1,0 +1,11 @@
+{
+  "domain": "materialkosten",
+  "name": "Materialkosten",
+  "version": "0.5.1",
+  "documentation": "https://github.com/th1982tom/materialkosten",
+  "issue_tracker": "https://github.com/th1982tom/materialkosten/issues",
+  "codeowners": [],
+  "config_flow": true,
+  "integration_type": "service",
+  "iot_class": "local_push"
+}

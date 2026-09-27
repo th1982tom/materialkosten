@@ -1,0 +1,47 @@
+add_project:
+  name: Projekt anlegen
+  fields:
+    name: {required: true, selector: {text: {}}}
+    customer: {selector: {text: {}}}
+    note: {selector: {text: {}}}
+remove_project:
+  name: Projekt löschen
+  fields:
+    project_id: {required: true, selector: {text: {}}}
+add_item:
+  name: Material erfassen
+  fields:
+    project_id: {required: true, selector: {text: {}}}
+    material: {required: true, selector: {text: {}}}
+    quantity: {required: true, selector: {number: {min: 0.001, mode: box}}}
+    unit: {required: true, selector: {text: {}}}
+    unit_price: {required: true, selector: {number: {min: 0, mode: box, step: 0.01}}}
+    note: {selector: {text: {}}}
+remove_item:
+  name: Materialposition löschen
+  fields:
+    item_id: {required: true, selector: {text: {}}}
+add_material:
+  name: Material-Stammdaten anlegen
+  fields:
+    name: {required: true, selector: {text: {}}}
+    unit: {selector: {text: {}}}
+    unit_price: {selector: {number: {min: 0, mode: box, step: 0.01}}}
+remove_material:
+  name: Material-Stammdaten löschen
+  fields:
+    material_id: {required: true, selector: {text: {}}}
+
+add_work:
+  name: Arbeitszeit erfassen
+  fields:
+    project_id: {required: true, selector: {text: {}}}
+    date: {selector: {date: {}}}
+    description: {required: true, selector: {text: {}}}
+    hours: {required: true, selector: {number: {min: 0.01, mode: box, step: 0.25}}}
+    hourly_rate: {required: true, selector: {number: {min: 0, mode: box, step: 0.50}}}
+
+remove_work:
+  name: Arbeitszeit löschen
+  fields:
+    work_id: {required: true, selector: {text: {}}}
