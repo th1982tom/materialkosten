@@ -37,18 +37,27 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
         from homeassistant.components.frontend import async_register_built_in_panel
         async_register_built_in_panel(
             hass,
-            "custom",
-            "Materialkosten",
-            "mdi:cash-register",
-            "materialkosten",
-            config={"_panel_custom": True},
+            component_name="custom",
+            sidebar_title="Materialkosten",
+            sidebar_icon="mdi:cash-register",
+            frontend_url_path="materialkosten",
+            config={
+                "_panel_custom": {
+                    "name": "materialkosten-panel",
+                    "embed_iframe": False,
+                    "trust_external": False,
+                    "module_url": "/api/materialkosten/panel.js",
+                }
+            },
+            require_admin=False,
+            update=True,
         )
-    except Exception:
-        # The integration still works through its entities/services if the panel API changes.
-        pass
+    except Exception as err:
+        import logging
+        logging.getLogger(__name__).debug("Materialkosten panel registration failed: %s", err)
 
     async def add_project(call: ServiceCall):
-        await manager.add_project(call.data["name"], call.data.get("customer", ""), call.data.get("note", ""))
+        await manager.add_project(call.data["name"], call.data.get("customer", ""), call.data.get("note", ""), call.data.get("order_number", ""), call.data.get("status", "offen"))
 
     async def remove_project(call: ServiceCall):
         await manager.remove_project(call.data["project_id"])
