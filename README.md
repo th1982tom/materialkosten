@@ -59,3 +59,8 @@ Nach der Installation erscheint die Seite **Materialkosten** in der Home-Assista
 - Neue Auftragsübersicht mit Detailansicht je Auftrag.
 - Material und Arbeitszeit werden erst beim Öffnen eines Auftrags angezeigt.
 - Materialstamm bleibt über die Auftragsdetailansicht erreichbar.
+
+## v0.7.8
+
+- Einzelne Materialpositionen können direkt im Auftrag gelöscht werden.
+- Auch einzelne Arbeitszeitpositionen können direkt im Auftrag gelöscht werden.
