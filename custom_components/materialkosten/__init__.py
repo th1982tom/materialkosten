@@ -46,7 +46,7 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
                     "name": "materialkosten-panel",
                     "embed_iframe": False,
                     "trust_external": False,
-                    "module_url": "/api/materialkosten/panel.js?v=0.7.4",
+                    "module_url": "/api/materialkosten/panel.js?v=0.7.6",
                 }
             },
             require_admin=False,
