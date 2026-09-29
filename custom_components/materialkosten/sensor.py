@@ -65,8 +65,10 @@ class MaterialProjectsSensor(SensorEntity):
                  "status": p.get("status","offen"),
                  "erstellt": p.get("created"),
                  "abgeschlossen": p.get("completed"),
+                 "note": p.get("note",""),
                  "material": self.manager.material_total(p["id"]),
                  "material_positionen": self.manager.items(p["id"]),
+                 "arbeitspositionen": self.manager.work(p["id"]),
                  "arbeitszeit": self.manager.work_total(p["id"]),
                  "kosten": self.manager.project_total(p["id"])}
                 for p in self.manager.projects().values()

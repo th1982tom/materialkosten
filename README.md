@@ -53,3 +53,9 @@ Nach der Installation erscheint die Seite **Materialkosten** in der Home-Assista
 ## v0.7.6
 
 - Fix: Frontend cache-buster updated so the booked-material view is loaded by Home Assistant.
+
+## v0.7.7
+
+- Neue Auftragsübersicht mit Detailansicht je Auftrag.
+- Material und Arbeitszeit werden erst beim Öffnen eines Auftrags angezeigt.
+- Materialstamm bleibt über die Auftragsdetailansicht erreichbar.
