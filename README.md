@@ -43,3 +43,9 @@ Nach der Installation erscheint die Seite **Materialkosten** in der Home-Assista
 
 - Fix: Auftrags-, Material- und Arbeitszeitdialoge bleiben bei Home-Assistant-State-Updates geöffnet.
 - Frontend-Modul erhält eine neue Versionskennung zur Vermeidung von Browser-Caching.
+
+## v0.7.5
+
+- Gebuchtes Material wird direkt unter jedem Auftrag angezeigt.
+- Anzeige von Menge, Einheit, Einzelpreis und Positionssumme.
+- Oberfläche aktualisiert sich nach Änderungen sofort.

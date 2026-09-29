@@ -23,6 +23,7 @@ class MaterialManager:
 
     async def async_save(self):
         await self.store.async_save(self.data)
+        self.hass.bus.async_fire("materialkosten_updated")
 
     async def async_setup_entry(self, entry):
         return None
