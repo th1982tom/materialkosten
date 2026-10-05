@@ -1,6 +1,10 @@
 """Materialkosten integration."""
 from __future__ import annotations
 
+from hashlib import sha256
+import json
+from pathlib import Path
+
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.components.http import StaticPathConfig
@@ -24,37 +28,45 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
     await manager.async_load()
     hass.data[DOMAIN] = manager
 
-    # Register the integration's built-in frontend. No /local or /hacsfiles resource is required.
+    # Read the installed manifest and bytes outside the event loop. Both the
+    # module URL and element name change with every frontend build.
+    def frontend_identity():
+        directory = Path(__file__).parent
+        version = json.loads((directory / "manifest.json").read_text(encoding="utf-8"))["version"]
+        digest = sha256((directory / "panel.js").read_bytes()).hexdigest()[:16]
+        element = f"materialkosten-panel-v{version.replace('.', '-')}-{digest}"
+        return version, digest, element
+
+    version, digest, element = await hass.async_add_executor_job(frontend_identity)
     await hass.http.async_register_static_paths([
         StaticPathConfig(
             "/api/materialkosten/panel.js",
-            hass.config.path("custom_components/materialkosten/panel.js"),
+            str(Path(__file__).parent / "panel.js"),
             cache_headers=False,
         )
     ])
 
-    try:
-        from homeassistant.components.frontend import async_register_built_in_panel
-        async_register_built_in_panel(
-            hass,
-            component_name="custom",
-            sidebar_title="Materialkosten",
-            sidebar_icon="mdi:cash-register",
-            frontend_url_path="materialkosten",
-            config={
-                "_panel_custom": {
-                    "name": "materialkosten-panel",
-                    "embed_iframe": False,
-                    "trust_external": False,
-                    "module_url": "/api/materialkosten/panel.js?v=0.7.8",
-                }
-            },
-            require_admin=False,
-            update=True,
-        )
-    except Exception as err:
-        import logging
-        logging.getLogger(__name__).debug("Materialkosten panel registration failed: %s", err)
+    from homeassistant.components.frontend import async_register_built_in_panel
+    async_register_built_in_panel(
+        hass,
+        component_name="custom",
+        sidebar_title="Materialkosten",
+        sidebar_icon="mdi:cash-register",
+        frontend_url_path="materialkosten",
+        config={
+            "_panel_custom": {
+                "name": element,
+                "embed_iframe": False,
+                "trust_external": False,
+                "module_url": (
+                    f"/api/materialkosten/panel.js?v={version}"
+                    f"&build={digest}&element={element}"
+                ),
+            }
+        },
+        require_admin=False,
+        update=True,
+    )
 
     async def add_project(call: ServiceCall):
         await manager.add_project(call.data["name"], call.data.get("customer", ""), call.data.get("note", ""), call.data.get("order_number", ""), call.data.get("status", "offen"))

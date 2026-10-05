@@ -1,3 +1,7 @@
+// Module scope prevents global class redeclarations. Never reuse the legacy
+// element: browsers cannot replace a custom element once it is registered.
+const panelElement = new URL(import.meta.url).searchParams.get("element")
+  || "materialkosten-panel-v0-7-9";
 class MaterialkostenPanel extends HTMLElement {
   set hass(hass){this._hass=hass;if(!this._dialog)this.render()}
   setConfig(c){this.config=c||{};this.render()}
@@ -12,7 +16,7 @@ class MaterialkostenPanel extends HTMLElement {
     d.querySelector(".cancel").onclick=()=>this.close();
     d.querySelector("form").onsubmit=async e=>{e.preventDefault();if(await submit(new FormData(e.target))!==false)this.close()}
   }
-  close(){if(this._dialog)this._dialog.remove();this._dialog=null}
+  close(){if(this._dialog)this._dialog.remove();this._dialog=null;this.render()}
 
   project(){
     this.dialog("Neuer Auftrag",`
@@ -97,10 +101,10 @@ class MaterialkostenPanel extends HTMLElement {
         <div class="actions"><button class="back" id="back">← Aufträge</button></div>
         <div class="detail-head">
           <div>
-            <div class="title">${this.esc((selected.order_number?selected.order_number+" – ":"")+selected.name)}</div>
+            <div class="title">${this.esc(((selected.order_number||selected.auftragsnummer)?(selected.order_number||selected.auftragsnummer)+" – ":"")+selected.name)}</div>
             <div class="sub">${this.esc(selected.customer||"Kein Kunde")} · ${this.esc(selected.status||"offen")}</div>
             <div class="detail-meta">
-              <div><div class="meta-label">Auftrag</div><div class="meta-value">${this.esc(selected.order_number||"–")}</div></div>
+              <div><div class="meta-label">Auftrag</div><div class="meta-value">${this.esc((selected.order_number||selected.auftragsnummer)||"–")}</div></div>
               <div><div class="meta-label">Kunde</div><div class="meta-value">${this.esc(selected.customer||"–")}</div></div>
               <div><div class="meta-label">Erstellt</div><div class="meta-value">${this.esc(selected.erstellt?new Date(selected.erstellt).toLocaleString("de-DE"):"–")}</div></div>
               <div><div class="meta-label">Abgeschlossen</div><div class="meta-value">${this.esc(selected.abgeschlossen?new Date(selected.abgeschlossen).toLocaleString("de-DE"):"–")}</div></div>
@@ -148,7 +152,7 @@ class MaterialkostenPanel extends HTMLElement {
       <div class="section">Aufträge</div>
       ${ps.length?ps.map(p=>`<div class="project" data-id="${p.id}">
         <div class="prow">
-          <div><div class="name">${this.esc(p.order_number? p.order_number+" – ":"")}${this.esc(p.name)}</div><div class="sub">${this.esc(p.customer||"Kein Kunde")} · ${this.esc(p.status||"offen")}</div></div>
+          <div><div class="name">${this.esc((p.order_number||p.auftragsnummer)? (p.order_number||p.auftragsnummer)+" – ":"")}${this.esc(p.name)}</div><div class="sub">${this.esc(p.customer||"Kein Kunde")} · ${this.esc(p.status||"offen")}</div></div>
           <div class="cost"><div class="break">Material ${Number(p.material||0).toFixed(2)} € · Arbeit ${Number(p.arbeitszeit||0).toFixed(2)} €</div>${Number(p.kosten||0).toFixed(2)} €</div>
           <span>›</span>
         </div>
@@ -159,4 +163,7 @@ class MaterialkostenPanel extends HTMLElement {
     this.querySelectorAll(".project").forEach(b=>b.onclick=()=>this.selectProject(b.dataset.id));
   }
 }
-customElements.define("materialkosten-panel",MaterialkostenPanel);
+if (!customElements.get(panelElement)) {
+  customElements.define(panelElement, MaterialkostenPanel);
+}
+
