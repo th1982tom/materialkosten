@@ -64,3 +64,13 @@ Nach der Installation erscheint die Seite **Materialkosten** in der Home-Assista
 
 - Einzelne Materialpositionen können direkt im Auftrag gelöscht werden.
 - Auch einzelne Arbeitszeitpositionen können direkt im Auftrag gelöscht werden.
+
+## v0.7.9
+
+- Eigener Elementname aus Version und Frontend-Prüfsumme: eine bereits geladene alte Oberfläche kann die aktuelle Ansicht nicht mehr übernehmen.
+- Registrierung mit customElements.get abgesichert; erneutes Laden desselben Builds ist sicher.
+- Modul-URL mit Version, Prüfsumme und Elementname; statischer Pfad ohne Cache-Header.
+- Frontend/HTTP als Abhängigkeiten; Registrierungsfehler werden nicht mehr still verschluckt.
+- Auftragsübersicht, Detailansicht und einzelne Löschaktionen bleiben erhalten.
+- Auftragsnummer wird auch aus dem bisherigen Sensorfeld angezeigt; nach Dialogschluss wird der aktuelle Zustand gerendert.
+- Speicherformat, Speicherschlüssel, Sensor-IDs und Service-Namen unverändert.
