@@ -74,3 +74,12 @@ Nach der Installation erscheint die Seite **Materialkosten** in der Home-Assista
 - Auftragsübersicht, Detailansicht und einzelne Löschaktionen bleiben erhalten.
 - Auftragsnummer wird auch aus dem bisherigen Sensorfeld angezeigt; nach Dialogschluss wird der aktuelle Zustand gerendert.
 - Speicherformat, Speicherschlüssel, Sensor-IDs und Service-Namen unverändert.
+
+## v0.7.10
+
+- Material direkt zum Auftrag hinzufügen, ohne vorherigen Materialstammeintrag.
+- Auswahl zwischen vorhandenen Stammdaten und freier Eingabe von Name, Einheit und Preis.
+- Optionales Kontrollkästchen „Auch in den Materialstamm übernehmen“, standardmäßig aus.
+- Gleicher Name und gleiche Einheit erzeugen keinen doppelten Stammeintrag; bestehender Standardpreis bleibt erhalten.
+- Position und optionaler Stammeintrag werden zusammen gespeichert.
+- Speicherformat und bestehende Daten bleiben unverändert.
