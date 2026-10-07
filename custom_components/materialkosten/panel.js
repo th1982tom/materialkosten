@@ -1,7 +1,7 @@
 // Module scope prevents global class redeclarations. Never reuse the legacy
 // element: browsers cannot replace a custom element once it is registered.
 const panelElement = new URL(import.meta.url).searchParams.get("element")
-  || "materialkosten-panel-v0-7-9";
+  || "materialkosten-panel-v0-7-10";
 class MaterialkostenPanel extends HTMLElement {
   set hass(hass){this._hass=hass;if(!this._dialog)this.render()}
   setConfig(c){this.config=c||{};this.render()}
@@ -14,7 +14,18 @@ class MaterialkostenPanel extends HTMLElement {
     d.innerHTML=`<div class="dialog"><h2>${this.esc(title)}</h2><form>${body}<div class="buttons"><button type="button" class="cancel">Abbrechen</button><button class="primary">Speichern</button></div></form></div>`;
     this.appendChild(d);this._dialog=d;
     d.querySelector(".cancel").onclick=()=>this.close();
-    d.querySelector("form").onsubmit=async e=>{e.preventDefault();if(await submit(new FormData(e.target))!==false)this.close()}
+    let saving=false;
+    d.querySelector("form").onsubmit=async e=>{
+      e.preventDefault();if(saving)return;
+      const button=d.querySelector(".primary");
+      saving=true;button.disabled=true;
+      try{if(await submit(new FormData(e.target))!==false)this.close()}
+      catch(err){
+        let message=d.querySelector(".save-error");
+        if(!message){message=document.createElement("p");message.className="save-error";message.setAttribute("role","alert");d.querySelector("form").appendChild(message)}
+        message.textContent=`Speichern fehlgeschlagen: ${err.message||err}`;
+      }finally{saving=false;button.disabled=false}
+    }
   }
   close(){if(this._dialog)this._dialog.remove();this._dialog=null;this.render()}
 
@@ -37,15 +48,34 @@ class MaterialkostenPanel extends HTMLElement {
 
   addMaterial(project){
     const mats=this.attrs().materialien||[];
-    if(!mats.length){this.material();return}
     const opts=mats.map(m=>`<option value="${this.esc(m.id)}">${this.esc(m.name)} – ${Number(m.unit_price).toFixed(2)} €/${this.esc(m.unit)}</option>`).join("");
     this.dialog("Material erfassen",`
-      <label>Material<select name="material">${opts}</select></label>
-      <div class="grid"><label>Menge<input name="qty" type="number" step="0.001" min="0.001" value="1"></label><label>Einzelpreis (€)<input name="price" type="number" step="0.01" min="0"></label></div>
+      <label>Material auswählen<select name="material">${opts}<option value="">Freie Eingabe / neues Material</option></select></label>
+      <div class="free-material">
+        <label>Materialname<input name="name" required placeholder="Material eingeben"></label>
+        <label>Einheit<input name="unit" required value="Stk."></label>
+        <label class="catalog-choice"><input name="save_to_catalog" type="checkbox" style="width:auto;margin-right:8px"> Auch in den Materialstamm übernehmen</label>
+      </div>
+      <div class="grid"><label>Menge<input name="qty" type="number" step="0.001" min="0.001" required value="1"></label><label>Einzelpreis (€)<input name="price" type="number" step="0.01" min="0" required value="0"></label></div>
       <label>Notiz<textarea name="note"></textarea></label>`,
-      async f=>{const m=mats.find(x=>x.id===f.get("material"));return this.call("add_item",{project_id:project,material:m.name,quantity:Number(f.get("qty")),unit:m.unit,unit_price:Number(f.get("price")),note:f.get("note")||""})});
+      async f=>{
+        const m=mats.find(x=>x.id===f.get("material"));
+        return this.call("add_item",{
+          project_id:project,material:m?m.name:String(f.get("name")||"").trim(),
+          quantity:Number(f.get("qty")),unit:m?m.unit:String(f.get("unit")||"").trim(),
+          unit_price:Number(f.get("price")),note:f.get("note")||"",
+          save_to_catalog:!m && f.get("save_to_catalog")==="on"
+        });
+      });
     const sel=this._dialog.querySelector("[name=material]"),price=this._dialog.querySelector("[name=price]");
-    const upd=()=>{const m=mats.find(x=>x.id===sel.value);if(m)price.value=Number(m.unit_price).toFixed(2)};sel.onchange=upd;upd();
+    const free=this._dialog.querySelector(".free-material");
+    const name=this._dialog.querySelector("[name=name]"),unit=this._dialog.querySelector("[name=unit]");
+    const save=this._dialog.querySelector("[name=save_to_catalog]");
+    const upd=()=>{
+      const m=mats.find(x=>x.id===sel.value);
+      free.hidden=!!m;name.disabled=!!m;unit.disabled=!!m;save.disabled=!!m;
+      if(m)price.value=Number(m.unit_price).toFixed(2);
+    };sel.onchange=upd;upd();
   }
 
   work(project){

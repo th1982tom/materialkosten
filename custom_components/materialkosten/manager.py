@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from datetime import date, datetime
+from math import isfinite
 from uuid import uuid4
 from homeassistant.helpers.storage import Store
 
@@ -79,13 +80,33 @@ class MaterialManager:
         self.data["items"] = [x for x in self.data["items"] if x["project_id"] != project_id]
         await self.async_save()
 
-    async def add_item(self, project_id, material, quantity, unit, unit_price, note=""):
+    async def add_item(self, project_id, material, quantity, unit, unit_price, note="", save_to_catalog=False):
+        material, unit = str(material).strip(), str(unit).strip()
+        quantity, unit_price = float(quantity), float(unit_price)
+        if project_id not in self.data["projects"]:
+            raise ValueError("Der Auftrag existiert nicht mehr.")
+        if not material or not unit:
+            raise ValueError("Materialname und Einheit sind erforderlich.")
+        if not isfinite(quantity) or quantity <= 0 or not isfinite(unit_price) or unit_price < 0:
+            raise ValueError("Menge muss positiv und Preis mindestens null sein.")
+        if not isinstance(save_to_catalog, bool):
+            raise ValueError("save_to_catalog muss ein boolescher Wert sein.")
         item = {
             "id": uuid4().hex, "project_id": project_id, "material": material,
             "quantity": float(quantity), "unit": unit, "unit_price": float(unit_price),
             "note": note, "date": date.today().isoformat()
         }
         self.data["items"].append(item)
+        if save_to_catalog and not any(
+            m["name"].strip().casefold() == material.casefold()
+            and m["unit"].strip().casefold() == unit.casefold()
+            for m in self.data["materials"].values()
+        ):
+            mid = uuid4().hex
+            self.data["materials"][mid] = {
+                "id": mid, "name": material, "unit": unit, "unit_price": unit_price
+            }
+        # Position and optional catalog entry are persisted together.
         await self.async_save()
         return item
 

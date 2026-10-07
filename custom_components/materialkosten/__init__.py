@@ -80,7 +80,8 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
     async def add_item(call: ServiceCall):
         await manager.add_item(
             call.data["project_id"], call.data["material"], call.data["quantity"],
-            call.data["unit"], call.data["unit_price"], call.data.get("note", "")
+            call.data["unit"], call.data["unit_price"], call.data.get("note", ""),
+            save_to_catalog=call.data.get("save_to_catalog", False),
         )
 
     async def remove_item(call: ServiceCall):

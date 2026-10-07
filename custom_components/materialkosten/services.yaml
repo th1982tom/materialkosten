@@ -26,6 +26,11 @@ add_item:
     unit: {required: true, selector: {text: {}}}
     unit_price: {required: true, selector: {number: {min: 0, mode: box, step: 0.01}}}
     note: {selector: {text: {}}}
+    save_to_catalog:
+      name: Auch in den Materialstamm übernehmen
+      description: Legt bei Bedarf einen Materialstammeintrag mit diesem Namen, dieser Einheit und diesem Preis an.
+      default: false
+      selector: {boolean: {}}
 remove_item:
   name: Materialposition löschen
   fields:
