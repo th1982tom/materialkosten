@@ -8,9 +8,9 @@ Einstellungen → Geräte & Dienste → Integration hinzufügen → Materialkost
 
 Es ist keine zusätzliche Lovelace-Ressource notwendig.
 
-## Update auf v0.7.10
+## Update auf v0.7.11
 
-ZIP im GitHub-Repository entpacken, sodass custom_components/materialkosten direkt im Repository liegt. Commit und Release mit Tag v0.7.10 erstellen. Danach in HACS aktualisieren und Home Assistant neu starten, damit die neue Python-Panel-Konfiguration aktiv wird. Die Integration nicht löschen oder neu anlegen.
+ZIP im GitHub-Repository entpacken, sodass custom_components/materialkosten direkt im Repository liegt. Commit und Release mit Tag v0.7.11 erstellen. Danach in HACS aktualisieren und Home Assistant neu starten, damit die neue Python-Panel-Konfiguration aktiv wird. Die Integration nicht löschen oder neu anlegen.
 
 Bestehende Daten in .storage/materialkosten.data bleiben erhalten (Speicherversion 2). Zur Sicherung vor dem Update ein Home-Assistant-Backup erstellen.
 

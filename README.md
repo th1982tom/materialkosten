@@ -83,3 +83,10 @@ Nach der Installation erscheint die Seite **Materialkosten** in der Home-Assista
 - Gleicher Name und gleiche Einheit erzeugen keinen doppelten Stammeintrag; bestehender Standardpreis bleibt erhalten.
 - Position und optionaler Stammeintrag werden zusammen gespeichert.
 - Speicherformat und bestehende Daten bleiben unverändert.
+
+## v0.7.11
+
+- Status-Auswahl wird nicht mehr durch Updates anderer Home-Assistant-Sensoren geschlossen.
+- Änderungen an Materialkosten-Daten werden bei fokussierter Status-Auswahl bis zum Verlassen des Feldes zurückgestellt.
+- Bei einem fehlgeschlagenen Statuswechsel erscheint eine Fehlermeldung.
+- Freie Materialeingabe, optionale Stammdatenübernahme und bestehende Daten bleiben erhalten.
