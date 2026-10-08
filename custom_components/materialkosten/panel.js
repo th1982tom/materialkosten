@@ -1,9 +1,12 @@
 // Module scope prevents global class redeclarations. Never reuse the legacy
 // element: browsers cannot replace a custom element once it is registered.
 const panelElement = new URL(import.meta.url).searchParams.get("element")
-  || "materialkosten-panel-v0-7-10";
+  || "materialkosten-panel-v0-7-11";
 class MaterialkostenPanel extends HTMLElement {
-  set hass(hass){this._hass=hass;if(!this._dialog)this.render()}
+  set hass(hass){
+    this._hass=hass;
+    if(JSON.stringify(this.attrs())!==this._renderedAttributes)this.render();
+  }
   setConfig(c){this.config=c||{};this.render()}
   esc(v){return String(v??"").replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
   attrs(){return this._hass.states["sensor.materialkosten_projekte"]?.attributes||{}}
@@ -103,6 +106,11 @@ class MaterialkostenPanel extends HTMLElement {
 
   render(){
     if(!this._hass || this._dialog)return;
+    // Never replace the native select while the user is interacting with it.
+    // Relevant sensor updates are applied after focus leaves the control.
+    if(this._statusEditing){this._statusPending=true;return}
+    this._statusPending=false;
+    this._renderedAttributes=JSON.stringify(this.attrs());
     const a=this.attrs(),ps=a.projekte||[];
     const selected=ps.find(p=>p.id===this._selectedProject);
 
@@ -170,7 +178,19 @@ class MaterialkostenPanel extends HTMLElement {
       this.querySelector("#addw").onclick=()=>this.work(selected.id);
       this.querySelector("#newmat").onclick=()=>this.material();
       this.querySelector("#delete").onclick=()=>this.remove(selected.id,selected.name);
-      this.querySelector(".detail-status").onchange=()=>this.status(selected.id,this.querySelector(".detail-status").value);
+      const statusSelect=this.querySelector(".detail-status");
+      statusSelect.onfocus=()=>{this._statusEditing=true};
+      statusSelect.onblur=()=>{
+        this._statusEditing=false;
+        if(this._statusPending)this.render();
+      };
+      statusSelect.onchange=async()=>{
+        try{await this.status(selected.id,statusSelect.value)}
+        catch(err){
+          statusSelect.value=selected.status||"offen";
+          alert(`Status konnte nicht gespeichert werden: ${err.message||err}`);
+        }
+      };
       this.querySelectorAll(".del-item").forEach(b=>b.onclick=()=>this.removeItem(b.dataset.id,b.dataset.name));
       this.querySelectorAll(".del-work").forEach(b=>b.onclick=()=>this.removeWork(b.dataset.id,b.dataset.name));
       return;
