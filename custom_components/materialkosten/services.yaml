@@ -44,6 +44,16 @@ add_item:
       description: Legt bei Bedarf einen Materialstammeintrag mit diesem Namen, dieser Einheit und diesem Preis an.
       default: false
       selector: {boolean: {}}
+update_item:
+  name: Gebuchtes Material bearbeiten
+  description: Ändert nur die angegebenen Positionsfelder. Auftrag und Materialstamm bleiben erhalten.
+  fields:
+    item_id: {required: true, selector: {text: {}}}
+    material: {name: Materialname, selector: {text: {}}}
+    quantity: {name: Menge, selector: {number: {min: 0.001, mode: box, step: 0.001}}}
+    unit: {name: Einheit, selector: {text: {}}}
+    unit_price: {name: Einzelpreis, selector: {number: {min: 0, mode: box, step: 0.01}}}
+    note: {name: Notiz, selector: {text: {multiline: true}}}
 remove_item:
   name: Materialposition löschen
   fields:
@@ -68,6 +78,15 @@ add_work:
     hours: {required: true, selector: {number: {min: 0.01, mode: box, step: 0.25}}}
     hourly_rate: {required: true, selector: {number: {min: 0, mode: box, step: 0.50}}}
 
+update_work:
+  name: Gebuchte Arbeitszeit bearbeiten
+  description: Ändert nur die angegebenen Positionsfelder. Der zugehörige Auftrag bleibt erhalten.
+  fields:
+    work_id: {required: true, selector: {text: {}}}
+    date: {name: Datum, selector: {date: {}}}
+    description: {name: Tätigkeit, selector: {text: {}}}
+    hours: {name: Stunden, selector: {number: {min: 0.01, mode: box, step: 0.01}}}
+    hourly_rate: {name: Stundensatz, selector: {number: {min: 0, mode: box, step: 0.01}}}
 remove_work:
   name: Arbeitszeit löschen
   fields:

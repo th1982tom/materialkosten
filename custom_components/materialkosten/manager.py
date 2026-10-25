@@ -129,6 +129,36 @@ class MaterialManager:
         await self.async_save()
         return item
 
+    async def update_item(self, item_id, **changes):
+        item = next((x for x in self.data["items"] if x["id"] == item_id), None)
+        if item is None:
+            raise ValueError("Die Materialposition existiert nicht mehr.")
+        if changes.keys() - {"material", "quantity", "unit", "unit_price", "note"}:
+            raise ValueError("Unbekanntes Materialfeld.")
+        for key in ("material", "unit", "note"):
+            if key in changes:
+                if not isinstance(changes[key], str):
+                    raise ValueError("Materialfelder müssen Text enthalten.")
+                if key != "note":
+                    changes[key] = changes[key].strip()
+                    if not changes[key]:
+                        raise ValueError("Materialname und Einheit sind erforderlich.")
+        for key in ("quantity", "unit_price"):
+            if key in changes:
+                value = changes[key]
+                if key == "unit_price" and (value is None or isinstance(value, str) and not value.strip()):
+                    value = 0
+                try:
+                    value = float(value)
+                except (ValueError, TypeError) as err:
+                    raise ValueError("Menge und Preis müssen gültige Zahlen sein.") from err
+                if not isfinite(value) or value < 0 or key == "quantity" and value == 0:
+                    raise ValueError("Menge muss positiv und Preis mindestens null sein.")
+                changes[key] = value
+        if changes:
+            item.update(changes)
+            await self.async_save()
+
     async def remove_item(self, item_id):
         self.data["items"] = [x for x in self.data["items"] if x["id"] != item_id]
         await self.async_save()
@@ -157,6 +187,35 @@ class MaterialManager:
         self.data["work"].append(item)
         await self.async_save()
         return item
+
+    async def update_work(self, work_id, **changes):
+        work = next((x for x in self.data["work"] if x["id"] == work_id), None)
+        if work is None:
+            raise ValueError("Die Arbeitszeitposition existiert nicht mehr.")
+        if changes.keys() - {"date", "description", "hours", "hourly_rate"}:
+            raise ValueError("Unbekanntes Arbeitszeitfeld.")
+        for key in ("date", "description"):
+            if key in changes:
+                if not isinstance(changes[key], str):
+                    raise ValueError("Datum und Tätigkeit müssen Text enthalten.")
+                if key == "description":
+                    changes[key] = changes[key].strip()
+                    if not changes[key]:
+                        raise ValueError("Eine Tätigkeit ist erforderlich.")
+                elif changes[key]:
+                    changes[key] = date.fromisoformat(changes[key]).isoformat()
+        for key in ("hours", "hourly_rate"):
+            if key in changes:
+                try:
+                    value = float(changes[key])
+                except (ValueError, TypeError) as err:
+                    raise ValueError("Stunden und Stundensatz müssen gültige Zahlen sein.") from err
+                if not isfinite(value) or value < 0 or key == "hours" and value == 0:
+                    raise ValueError("Stunden müssen positiv und Stundensatz mindestens null sein.")
+                changes[key] = value
+        if changes:
+            work.update(changes)
+            await self.async_save()
 
     async def remove_work(self, work_id):
         self.data["work"] = [x for x in self.data["work"] if x["id"] != work_id]

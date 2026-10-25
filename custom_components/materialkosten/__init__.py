@@ -93,6 +93,12 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
     async def remove_item(call: ServiceCall):
         await manager.remove_item(call.data["item_id"])
 
+    async def update_item(call: ServiceCall):
+        await manager.update_item(
+            call.data["item_id"],
+            **{key: value for key, value in call.data.items() if key != "item_id"},
+        )
+
     async def add_material(call: ServiceCall):
         await manager.add_material(call.data["name"], call.data.get("unit", "Stk."), call.data.get("unit_price", 0))
 
@@ -111,16 +117,24 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
     async def remove_work(call: ServiceCall):
         await manager.remove_work(call.data["work_id"])
 
+    async def update_work(call: ServiceCall):
+        await manager.update_work(
+            call.data["work_id"],
+            **{key: value for key, value in call.data.items() if key != "work_id"},
+        )
+
     hass.services.async_register(DOMAIN, SERVICE_ADD_PROJECT, add_project)
     hass.services.async_register(DOMAIN, SERVICE_REMOVE_PROJECT, remove_project)
     hass.services.async_register(DOMAIN, "update_project_status", update_project_status)
     hass.services.async_register(DOMAIN, "update_project", update_project)
     hass.services.async_register(DOMAIN, SERVICE_ADD_ITEM, add_item)
     hass.services.async_register(DOMAIN, SERVICE_REMOVE_ITEM, remove_item)
+    hass.services.async_register(DOMAIN, "update_item", update_item)
     hass.services.async_register(DOMAIN, SERVICE_ADD_MATERIAL, add_material)
     hass.services.async_register(DOMAIN, SERVICE_REMOVE_MATERIAL, remove_material)
     hass.services.async_register(DOMAIN, SERVICE_ADD_WORK, add_work)
     hass.services.async_register(DOMAIN, SERVICE_REMOVE_WORK, remove_work)
+    hass.services.async_register(DOMAIN, "update_work", update_work)
     return True
 
 

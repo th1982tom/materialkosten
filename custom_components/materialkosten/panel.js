@@ -1,7 +1,7 @@
 // Module scope prevents global class redeclarations. Never reuse the legacy
 // element: browsers cannot replace a custom element once it is registered.
 const panelElement = new URL(import.meta.url).searchParams.get("element")
-  || "materialkosten-panel-v0-7-13";
+  || "materialkosten-panel-v0-7-14";
 class MaterialkostenPanel extends HTMLElement {
   set hass(hass){
     this._hass=hass;
@@ -101,6 +101,31 @@ class MaterialkostenPanel extends HTMLElement {
       async f=>this.call("add_work",{project_id:project,date:f.get("date"),description:f.get("description"),hours:Number(f.get("hours")),hourly_rate:Number(f.get("rate"))}))
   }
 
+  editItem(item){
+    if(!item)return;
+    this.dialog("Materialposition bearbeiten",`
+      <label>Materialname<input name="material" required value="${this.esc(item.material)}"></label>
+      <div class="grid"><label>Menge<input name="quantity" type="number" step="any" min="0.001" required value="${this.esc(item.quantity)}"></label><label>Einheit<input name="unit" required value="${this.esc(item.unit)}"></label></div>
+      <label>Einzelpreis (€, optional)<input name="price" type="number" step="any" min="0" placeholder="Ohne Preis: 0 €" value="${this.esc(item.unit_price??0)}"></label>
+      <label>Notiz<textarea name="note" rows="3">${this.esc(item.note||"")}</textarea></label>`,
+      async f=>this.call("update_item",{
+        item_id:item.id,material:f.get("material"),quantity:Number(f.get("quantity")),
+        unit:f.get("unit"),unit_price:Number(f.get("price")),note:f.get("note")||""
+      }));
+  }
+
+  editWork(work){
+    if(!work)return;
+    this.dialog("Arbeitszeit bearbeiten",`
+      <label>Datum<input name="date" type="date" value="${this.esc(work.date||"")}"></label>
+      <label>Tätigkeit<input name="description" required value="${this.esc(work.description)}"></label>
+      <div class="grid"><label>Stunden<input name="hours" type="number" step="any" min="0.01" required value="${this.esc(work.hours)}"></label><label>Stundensatz (€)<input name="rate" type="number" step="any" min="0" required value="${this.esc(work.hourly_rate)}"></label></div>`,
+      async f=>this.call("update_work",{
+        work_id:work.id,date:f.get("date")||"",description:f.get("description"),
+        hours:Number(f.get("hours")),hourly_rate:Number(f.get("rate"))
+      }));
+  }
+
   status(id,status){return this.call("update_project_status",{project_id:id,status})}
   async remove(id,name){if(confirm(`Auftrag "${name}" wirklich löschen?`)){await this.call("remove_project",{project_id:id});this._selectedProject=null;this.render()}}
   async removeItem(id,name){
@@ -136,11 +161,11 @@ class MaterialkostenPanel extends HTMLElement {
       .prow{display:grid;grid-template-columns:1fr auto auto;gap:16px;align-items:center}.name{font-weight:600;font-size:17px}.cost{font-weight:600;text-align:right}.break{font-size:12px;color:var(--secondary-text-color);text-align:right}
       .detail-head{display:flex;justify-content:space-between;gap:20px;align-items:flex-start;padding-bottom:18px;border-bottom:1px solid var(--divider-color)}.detail-meta{display:grid;grid-template-columns:repeat(2,minmax(150px,1fr));gap:10px 24px;margin-top:16px}.meta-label{font-size:12px;color:var(--secondary-text-color)}.meta-value{font-weight:500}
       .cards{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px}.card{padding:14px;border-radius:12px;background:var(--secondary-background-color)}
-      .card-title{font-size:17px;font-weight:600;margin-bottom:8px}.row{display:flex;justify-content:space-between;gap:16px;padding:9px 0;border-top:1px solid var(--divider-color);align-items:center}.row:first-of-type{border-top:0}.row-main{min-width:0}.row-actions{display:flex;align-items:center;gap:10px;flex-shrink:0}.position-total{white-space:nowrap}.delete-position{background:transparent!important;color:var(--secondary-text-color)!important;padding:4px 7px!important;font-size:16px}.delete-position:hover{color:var(--error-color)!important;background:var(--secondary-background-color)!important}.empty{color:var(--secondary-text-color);padding:10px 0}
+      .card-title{font-size:17px;font-weight:600;margin-bottom:8px}.row{display:flex;justify-content:space-between;gap:16px;padding:9px 0;border-top:1px solid var(--divider-color);align-items:center}.row:first-of-type{border-top:0}.row-main{min-width:0}.row-actions{display:flex;flex-wrap:wrap;align-items:center;gap:10px;flex-shrink:0}.position-total{white-space:nowrap}.delete-position{background:transparent!important;color:var(--secondary-text-color)!important;padding:4px 7px!important;font-size:16px}.delete-position:hover{color:var(--error-color)!important;background:var(--secondary-background-color)!important}.empty{color:var(--secondary-text-color);padding:10px 0}
       .pactions{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:18px}.summary .card{background:var(--card-background-color);border:1px solid var(--divider-color)}
       select,input,textarea{box-sizing:border-box;width:100%;margin-top:5px;padding:10px;border:1px solid var(--divider-color);border-radius:8px;background:var(--secondary-background-color);color:var(--primary-text-color);font:inherit}label{display:block;margin:11px 0}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-      .overlay{position:fixed;inset:0;background:#0008;display:flex;align-items:center;justify-content:center;z-index:10000}.dialog{background:var(--card-background-color);padding:22px;border-radius:14px;width:min(520px,calc(100vw - 32px));box-shadow:0 10px 40px #0008}.dialog h2{margin-top:0}.buttons{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}.cancel{background:var(--secondary-background-color);color:var(--primary-text-color)}
-      @media(max-width:760px){.prow{grid-template-columns:1fr auto}.detail-meta,.cards,.summary{grid-template-columns:1fr}.cost{grid-column:1/-1;text-align:left}.break{text-align:left}.grid{grid-template-columns:1fr}}
+      .overlay{position:fixed;inset:0;background:#0008;display:flex;align-items:center;justify-content:center;z-index:10000}.dialog{background:var(--card-background-color);padding:22px;border-radius:14px;width:min(520px,calc(100vw - 32px));box-shadow:0 10px 40px #0008}.dialog{max-height:calc(100dvh - 48px);overflow-y:auto}.dialog h2{margin-top:0}.buttons{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}.cancel{background:var(--secondary-background-color);color:var(--primary-text-color)}
+      @media(max-width:760px){.row{flex-wrap:wrap}.row-actions{width:100%;justify-content:flex-end}.edit-item,.edit-work{padding:7px 10px}.prow{grid-template-columns:1fr auto}.detail-meta,.cards,.summary{grid-template-columns:1fr}.cost{grid-column:1/-1;text-align:left}.break{text-align:left}.grid{grid-template-columns:1fr}}
     </style>`;
 
     if(selected){
@@ -175,10 +200,10 @@ class MaterialkostenPanel extends HTMLElement {
 
         <div class="cards">
           <div class="card"><div class="card-title">Gebuchtes Material</div>
-            ${items.length?items.map(i=>`<div class="row"><div class="row-main"><b>${this.esc(i.material)}</b><div class="sub">${Number(i.quantity).toLocaleString("de-DE")} ${this.esc(i.unit)} × ${Number(i.unit_price).toFixed(2)} €${i.note?` · ${this.esc(i.note)}`:""}</div></div><div class="row-actions"><b class="position-total">${(Number(i.quantity)*Number(i.unit_price)).toFixed(2)} €</b><button class="delete-position del-item" title="Position löschen" data-id="${this.esc(i.id)}" data-name="${this.esc(i.material)}">✕</button></div></div>`).join(""):`<div class="empty">Noch kein Material gebucht.</div>`}
+            ${items.length?items.map(i=>`<div class="row"><div class="row-main"><b>${this.esc(i.material)}</b><div class="sub">${Number(i.quantity).toLocaleString("de-DE")} ${this.esc(i.unit)} × ${Number(i.unit_price).toFixed(2)} €${i.note?` · ${this.esc(i.note)}`:""}</div></div><div class="row-actions"><b class="position-total">${(Number(i.quantity)*Number(i.unit_price)).toFixed(2)} €</b><button class="back edit-item" data-id="${this.esc(i.id)}" aria-label="Materialposition bearbeiten">Bearbeiten</button><button class="delete-position del-item" title="Position löschen" data-id="${this.esc(i.id)}" data-name="${this.esc(i.material)}">✕</button></div></div>`).join(""):`<div class="empty">Noch kein Material gebucht.</div>`}
           </div>
           <div class="card"><div class="card-title">Arbeitszeit</div>
-            ${works.length?works.map(w=>`<div class="row"><div class="row-main"><b>${this.esc(w.description)}</b><div class="sub">${this.esc(w.date||"")} · ${Number(w.hours).toFixed(2)} Std. × ${Number(w.hourly_rate).toFixed(2)} €</div></div><div class="row-actions"><b class="position-total">${(Number(w.hours)*Number(w.hourly_rate)).toFixed(2)} €</b><button class="delete-position del-work" title="Arbeitszeit löschen" data-id="${this.esc(w.id)}" data-name="${this.esc(w.description)}">✕</button></div></div>`).join(""):`<div class="empty">Noch keine Arbeitszeit erfasst.</div>`}
+            ${works.length?works.map(w=>`<div class="row"><div class="row-main"><b>${this.esc(w.description)}</b><div class="sub">${this.esc(w.date||"")} · ${Number(w.hours).toFixed(2)} Std. × ${Number(w.hourly_rate).toFixed(2)} €</div></div><div class="row-actions"><b class="position-total">${(Number(w.hours)*Number(w.hourly_rate)).toFixed(2)} €</b><button class="back edit-work" data-id="${this.esc(w.id)}" aria-label="Arbeitszeit bearbeiten">Bearbeiten</button><button class="delete-position del-work" title="Arbeitszeit löschen" data-id="${this.esc(w.id)}" data-name="${this.esc(w.description)}">✕</button></div></div>`).join(""):`<div class="empty">Noch keine Arbeitszeit erfasst.</div>`}
           </div>
         </div>
 
@@ -206,6 +231,8 @@ class MaterialkostenPanel extends HTMLElement {
       };
       this.querySelectorAll(".del-item").forEach(b=>b.onclick=()=>this.removeItem(b.dataset.id,b.dataset.name));
       this.querySelectorAll(".del-work").forEach(b=>b.onclick=()=>this.removeWork(b.dataset.id,b.dataset.name));
+      this.querySelectorAll(".edit-item").forEach(b=>b.onclick=()=>this.editItem(items.find(i=>i.id===b.dataset.id)));
+      this.querySelectorAll(".edit-work").forEach(b=>b.onclick=()=>this.editWork(works.find(w=>w.id===b.dataset.id)));
       return;
     }
 
