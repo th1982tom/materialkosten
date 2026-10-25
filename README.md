@@ -104,3 +104,12 @@ Nach der Installation erscheint die Seite **Materialkosten** in der Home-Assista
 - Zusätzlicher mehrzeiliger Text im Notizfeld möglich.
 - Neuer Service update_project ändert nur angegebene Textfelder.
 - Auftrags-ID, Status, Zeitstempel, Materialien und Arbeitszeiten bleiben erhalten.
+
+## v0.7.14
+
+- Jede gebuchte Material- und Arbeitszeitposition hat einen Bearbeiten-Button.
+- Vorausgefüllte Dialoge für Materialname, Menge, Einheit, Einzelpreis und Notiz bzw. Datum, Tätigkeit, Stunden und Stundensatz.
+- Speichern aktualisiert die bestehende Position und berechnet die Summen neu. Abbrechen speichert nichts.
+- IDs, Auftragszuordnung und Buchungsdatum des Materials bleiben erhalten; Materialstammdaten werden beim Bearbeiten einer Position nicht verändert.
+- Materialpreis darf leer bleiben (0 Euro). Ungültige Werte werden ohne Änderung der Position abgelehnt.
+- Speicherformat und bestehende Aufträge bleiben erhalten.
