@@ -1,7 +1,7 @@
 // Module scope prevents global class redeclarations. Never reuse the legacy
 // element: browsers cannot replace a custom element once it is registered.
 const panelElement = new URL(import.meta.url).searchParams.get("element")
-  || "materialkosten-panel-v0-7-11";
+  || "materialkosten-panel-v0-7-12";
 class MaterialkostenPanel extends HTMLElement {
   set hass(hass){
     this._hass=hass;
@@ -59,7 +59,7 @@ class MaterialkostenPanel extends HTMLElement {
         <label>Einheit<input name="unit" required value="Stk."></label>
         <label class="catalog-choice"><input name="save_to_catalog" type="checkbox" style="width:auto;margin-right:8px"> Auch in den Materialstamm übernehmen</label>
       </div>
-      <div class="grid"><label>Menge<input name="qty" type="number" step="0.001" min="0.001" required value="1"></label><label>Einzelpreis (€)<input name="price" type="number" step="0.01" min="0" required value="0"></label></div>
+      <div class="grid"><label>Menge<input name="qty" type="number" step="0.001" min="0.001" required value="1"></label><label>Einzelpreis (€, optional)<input name="price" type="number" step="0.01" min="0" placeholder="Ohne Preis: 0 €" value="0"></label></div>
       <label>Notiz<textarea name="note"></textarea></label>`,
       async f=>{
         const m=mats.find(x=>x.id===f.get("material"));

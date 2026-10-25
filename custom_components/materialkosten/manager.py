@@ -80,8 +80,10 @@ class MaterialManager:
         self.data["items"] = [x for x in self.data["items"] if x["project_id"] != project_id]
         await self.async_save()
 
-    async def add_item(self, project_id, material, quantity, unit, unit_price, note="", save_to_catalog=False):
+    async def add_item(self, project_id, material, quantity, unit, unit_price=0, note="", save_to_catalog=False):
         material, unit = str(material).strip(), str(unit).strip()
+        if unit_price is None or (isinstance(unit_price, str) and not unit_price.strip()):
+            unit_price = 0
         quantity, unit_price = float(quantity), float(unit_price)
         if project_id not in self.data["projects"]:
             raise ValueError("Der Auftrag existiert nicht mehr.")

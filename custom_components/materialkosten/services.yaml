@@ -24,7 +24,11 @@ add_item:
     material: {required: true, selector: {text: {}}}
     quantity: {required: true, selector: {number: {min: 0.001, mode: box}}}
     unit: {required: true, selector: {text: {}}}
-    unit_price: {required: true, selector: {number: {min: 0, mode: box, step: 0.01}}}
+    unit_price:
+      name: Einzelpreis
+      description: Optional. Ohne Preis wird die Position mit 0 Euro gebucht.
+      default: 0
+      selector: {number: {min: 0, mode: box, step: 0.01}}
     note: {selector: {text: {}}}
     save_to_catalog:
       name: Auch in den Materialstamm übernehmen
