@@ -90,3 +90,10 @@ Nach der Installation erscheint die Seite **Materialkosten** in der Home-Assista
 - Änderungen an Materialkosten-Daten werden bei fokussierter Status-Auswahl bis zum Verlassen des Feldes zurückgestellt.
 - Bei einem fehlgeschlagenen Statuswechsel erscheint eine Fehlermeldung.
 - Freie Materialeingabe, optionale Stammdatenübernahme und bestehende Daten bleiben erhalten.
+
+## v0.7.12
+
+- Material kann ohne Einzelpreis zum Auftrag gebucht werden. Ein leeres Preisfeld zählt als 0 Euro.
+- Gilt für freie Eingabe und vorhandene Stammdaten; optionale Stammdatenübernahme bleibt möglich.
+- Der Service add_item akzeptiert fehlende, leere oder null-Preise als 0 Euro. Negative und ungültige Preise bleiben unzulässig.
+- Bestehende Daten und Speicherformat unverändert.
