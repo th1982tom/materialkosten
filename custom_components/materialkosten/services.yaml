@@ -13,6 +13,15 @@ add_project:
             - offen
             - in_bearbeitung
             - abgeschlossen
+update_project:
+  name: Auftrag bearbeiten
+  description: Ändert nur die angegebenen Textfelder. Positionen, Status und Zeitstempel bleiben erhalten.
+  fields:
+    project_id: {required: true, selector: {text: {}}}
+    name: {name: Auftragsname, selector: {text: {}}}
+    customer: {name: Kunde, selector: {text: {}}}
+    order_number: {name: Auftragsnummer, selector: {text: {}}}
+    note: {name: Notiz, selector: {text: {multiline: true}}}
 remove_project:
   name: Projekt löschen
   fields:

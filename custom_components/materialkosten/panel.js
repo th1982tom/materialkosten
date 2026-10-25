@@ -1,7 +1,7 @@
 // Module scope prevents global class redeclarations. Never reuse the legacy
 // element: browsers cannot replace a custom element once it is registered.
 const panelElement = new URL(import.meta.url).searchParams.get("element")
-  || "materialkosten-panel-v0-7-12";
+  || "materialkosten-panel-v0-7-13";
 class MaterialkostenPanel extends HTMLElement {
   set hass(hass){
     this._hass=hass;
@@ -40,6 +40,18 @@ class MaterialkostenPanel extends HTMLElement {
       <label>Status<select name="status"><option value="offen">Offen</option><option value="in_bearbeitung">In Bearbeitung</option><option value="abgeschlossen">Abgeschlossen</option></select></label>
       <label>Notiz<textarea name="note"></textarea></label>`,
       async f=>this.call("add_project",{order_number:f.get("order")||"",name:f.get("name"),customer:f.get("customer")||"",status:f.get("status"),note:f.get("note")||""}))
+  }
+
+  editProject(project){
+    this.dialog("Auftrag bearbeiten",`
+      <label>Auftragsnummer<input name="order" value="${this.esc(project.order_number||project.auftragsnummer||"")}"></label>
+      <label>Auftragsname<input name="name" required value="${this.esc(project.name)}"></label>
+      <label>Kunde<input name="customer" value="${this.esc(project.customer||"")}"></label>
+      <label>Notiz / zusätzlicher Text<textarea name="note" rows="5">${this.esc(project.note||"")}</textarea></label>`,
+      async f=>this.call("update_project",{
+        project_id:project.id,order_number:f.get("order")||"",name:f.get("name"),
+        customer:f.get("customer")||"",note:f.get("note")||""
+      }));
   }
 
   material(){
@@ -152,7 +164,7 @@ class MaterialkostenPanel extends HTMLElement {
         </div>
 
         <div class="pactions">
-          <button id="addm">＋ Material</button><button id="addw">＋ Arbeit</button><button id="newmat" class="back">＋ Materialstamm</button><button id="delete" class="delete">Auftrag löschen</button>
+          <button id="editproject" class="back">Auftrag bearbeiten</button><button id="addm">＋ Material</button><button id="addw">＋ Arbeit</button><button id="newmat" class="back">＋ Materialstamm</button><button id="delete" class="delete">Auftrag löschen</button>
         </div>
 
         <div class="summary">
@@ -170,13 +182,14 @@ class MaterialkostenPanel extends HTMLElement {
           </div>
         </div>
 
-        ${selected.note?`<div class="section">Notiz</div><div class="card">${this.esc(selected.note)}</div>`:""}
+        ${selected.note?`<div class="section">Notiz</div><div class="card" style="white-space:pre-wrap;overflow-wrap:anywhere">${this.esc(selected.note)}</div>`:""}
       </div>`;
 
       this.querySelector("#back").onclick=()=>{this._selectedProject=null;this.render()};
       this.querySelector("#addm").onclick=()=>this.addMaterial(selected.id);
       this.querySelector("#addw").onclick=()=>this.work(selected.id);
       this.querySelector("#newmat").onclick=()=>this.material();
+      this.querySelector("#editproject").onclick=()=>this.editProject(selected);
       this.querySelector("#delete").onclick=()=>this.remove(selected.id,selected.name);
       const statusSelect=this.querySelector(".detail-status");
       statusSelect.onfocus=()=>{this._statusEditing=true};

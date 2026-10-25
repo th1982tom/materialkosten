@@ -67,6 +67,23 @@ class MaterialManager:
         await self.async_save()
         return pid
 
+    async def update_project(self, project_id, **changes):
+        project = self.data["projects"].get(project_id)
+        if project is None:
+            raise ValueError("Der Auftrag existiert nicht mehr.")
+        if changes.keys() - {"name", "customer", "note", "order_number"}:
+            raise ValueError("Unbekanntes Auftragsfeld.")
+        if any(not isinstance(value, str) for value in changes.values()):
+            raise ValueError("Auftragsfelder müssen Text enthalten.")
+        if "name" in changes:
+            changes["name"] = changes["name"].strip()
+            if not changes["name"]:
+                raise ValueError("Der Auftragsname darf nicht leer sein.")
+        if not changes:
+            return
+        project.update(changes)
+        await self.async_save()
+
     async def update_project_status(self, project_id, status):
         project = self.data["projects"].get(project_id)
         if not project:
