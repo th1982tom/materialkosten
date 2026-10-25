@@ -97,3 +97,10 @@ Nach der Installation erscheint die Seite **Materialkosten** in der Home-Assista
 - Gilt für freie Eingabe und vorhandene Stammdaten; optionale Stammdatenübernahme bleibt möglich.
 - Der Service add_item akzeptiert fehlende, leere oder null-Preise als 0 Euro. Negative und ungültige Preise bleiben unzulässig.
 - Bestehende Daten und Speicherformat unverändert.
+
+## v0.7.13
+
+- Auftragsnummer, Auftragsname, Kunde und Notiz nachträglich über Auftrag bearbeiten ändern.
+- Zusätzlicher mehrzeiliger Text im Notizfeld möglich.
+- Neuer Service update_project ändert nur angegebene Textfelder.
+- Auftrags-ID, Status, Zeitstempel, Materialien und Arbeitszeiten bleiben erhalten.
