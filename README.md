@@ -117,3 +117,7 @@ Nach der Installation erscheint die Seite **Materialkosten** in der Home-Assista
 ## v0.7.15
 
 Unter **Auftrag bearbeiten → Bereits bezahlt (€)** den bisher insgesamt erhaltenen Betrag eintragen. Die Übersicht und die Auftragsdetails zeigen Guthaben, offenen Betrag oder einen ausgeglichenen Auftrag. Beispiel: 100 € erhalten bei 50 € Gesamtkosten ergibt 50 € Guthaben. Bestehende Aufträge ohne Zahlbetrag starten bei 0 €.
+
+## v0.7.16
+
+Offene und laufende Aufträge stehen vor abgeschlossenen Aufträgen. Innerhalb beider Gruppen erscheinen die neuesten Aufträge zuerst.
