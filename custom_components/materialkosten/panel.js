@@ -1,7 +1,7 @@
 // Module scope prevents global class redeclarations. Never reuse the legacy
 // element: browsers cannot replace a custom element once it is registered.
 const panelElement = new URL(import.meta.url).searchParams.get("element")
-  || "materialkosten-panel-v0-7-15";
+  || "materialkosten-panel-v0-7-16";
 class MaterialkostenPanel extends HTMLElement {
   set hass(hass){
     this._hass=hass;
@@ -248,11 +248,16 @@ class MaterialkostenPanel extends HTMLElement {
       return;
     }
 
+    const orderedProjects=ps.map((project,index)=>({
+      project,index,closed:Number(project.status==="abgeschlossen"),
+      created:Date.parse(project.erstellt)||0
+    })).sort((a,b)=>a.closed-b.closed||b.created-a.created||b.index-a.index);
+
     this.innerHTML+=`<div class="wrap">
       <div class="top"><div><div class="title">Materialkosten</div><div class="sub">Aufträge</div></div></div>
       <div class="actions"><button id="p">＋ Auftrag</button></div>
       <div class="section">Aufträge</div>
-      ${ps.length?ps.map(p=>`<div class="project" data-id="${p.id}">
+      ${orderedProjects.length?orderedProjects.map(({project:p})=>`<div class="project" data-id="${p.id}">
         <div class="prow">
           <div><div class="name">${this.esc((p.order_number||p.auftragsnummer)? (p.order_number||p.auftragsnummer)+" – ":"")}${this.esc(p.name)}</div><div class="sub">${this.esc(p.customer||"Kein Kunde")} · ${this.esc(p.status||"offen")}</div></div>
           <div class="cost"><div class="break">Material ${Number(p.material||0).toFixed(2)} € · Arbeit ${Number(p.arbeitszeit||0).toFixed(2)} €</div>${Number(p.kosten||0).toFixed(2)} €<div class="break">${this.payment(p).label}: ${this.payment(p).amount}</div></div>
