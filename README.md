@@ -113,3 +113,7 @@ Nach der Installation erscheint die Seite **Materialkosten** in der Home-Assista
 - IDs, Auftragszuordnung und Buchungsdatum des Materials bleiben erhalten; Materialstammdaten werden beim Bearbeiten einer Position nicht verändert.
 - Materialpreis darf leer bleiben (0 Euro). Ungültige Werte werden ohne Änderung der Position abgelehnt.
 - Speicherformat und bestehende Aufträge bleiben erhalten.
+
+## v0.7.15
+
+Unter **Auftrag bearbeiten → Bereits bezahlt (€)** den bisher insgesamt erhaltenen Betrag eintragen. Die Übersicht und die Auftragsdetails zeigen Guthaben, offenen Betrag oder einen ausgeglichenen Auftrag. Beispiel: 100 € erhalten bei 50 € Gesamtkosten ergibt 50 € Guthaben. Bestehende Aufträge ohne Zahlbetrag starten bei 0 €.
