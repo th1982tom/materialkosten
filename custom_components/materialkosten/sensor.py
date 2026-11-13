@@ -66,6 +66,7 @@ class MaterialProjectsSensor(SensorEntity):
                  "erstellt": p.get("created"),
                  "abgeschlossen": p.get("completed"),
                  "note": p.get("note",""),
+                 "paid_cents": p.get("paid_cents", 0),
                  "material": self.manager.material_total(p["id"]),
                  "material_positionen": self.manager.items(p["id"]),
                  "arbeitspositionen": self.manager.work(p["id"]),

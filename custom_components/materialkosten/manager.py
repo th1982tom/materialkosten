@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from datetime import date, datetime
+from decimal import Decimal, InvalidOperation
 from math import isfinite
 from uuid import uuid4
 from homeassistant.helpers.storage import Store
@@ -71,14 +72,29 @@ class MaterialManager:
         project = self.data["projects"].get(project_id)
         if project is None:
             raise ValueError("Der Auftrag existiert nicht mehr.")
-        if changes.keys() - {"name", "customer", "note", "order_number"}:
+        if changes.keys() - {"name", "customer", "note", "order_number", "paid_amount"}:
             raise ValueError("Unbekanntes Auftragsfeld.")
+        paid_cents = None
+        if "paid_amount" in changes:
+            value = changes.pop("paid_amount")
+            try:
+                amount = Decimal(str(value).strip() or "0")
+                if not amount.is_finite() or not 0 <= amount <= Decimal("999999999999.99"):
+                    raise InvalidOperation
+                cents = amount * 100
+                if cents != cents.to_integral_value():
+                    raise InvalidOperation
+                paid_cents = int(cents)
+            except InvalidOperation as err:
+                raise ValueError("Bitte einen gültigen, nicht negativen Zahlbetrag mit höchstens zwei Nachkommastellen eingeben.") from err
         if any(not isinstance(value, str) for value in changes.values()):
             raise ValueError("Auftragsfelder müssen Text enthalten.")
         if "name" in changes:
             changes["name"] = changes["name"].strip()
             if not changes["name"]:
                 raise ValueError("Der Auftragsname darf nicht leer sein.")
+        if paid_cents is not None:
+            changes["paid_cents"] = paid_cents
         if not changes:
             return
         project.update(changes)

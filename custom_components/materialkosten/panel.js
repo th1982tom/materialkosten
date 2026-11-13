@@ -1,7 +1,7 @@
 // Module scope prevents global class redeclarations. Never reuse the legacy
 // element: browsers cannot replace a custom element once it is registered.
 const panelElement = new URL(import.meta.url).searchParams.get("element")
-  || "materialkosten-panel-v0-7-14";
+  || "materialkosten-panel-v0-7-15";
 class MaterialkostenPanel extends HTMLElement {
   set hass(hass){
     this._hass=hass;
@@ -47,10 +47,12 @@ class MaterialkostenPanel extends HTMLElement {
       <label>Auftragsnummer<input name="order" value="${this.esc(project.order_number||project.auftragsnummer||"")}"></label>
       <label>Auftragsname<input name="name" required value="${this.esc(project.name)}"></label>
       <label>Kunde<input name="customer" value="${this.esc(project.customer||"")}"></label>
+      <label>Bereits bezahlt (€)<input name="paid" type="number" min="0" max="999999999999.99" step="0.01" value="${(Number(project.paid_cents||0)/100).toFixed(2)}"></label>
+      <div class="sub">Bisher insgesamt erhaltener Betrag. Leer entspricht 0 €.</div>
       <label>Notiz / zusätzlicher Text<textarea name="note" rows="5">${this.esc(project.note||"")}</textarea></label>`,
       async f=>this.call("update_project",{
         project_id:project.id,order_number:f.get("order")||"",name:f.get("name"),
-        customer:f.get("customer")||"",note:f.get("note")||""
+        customer:f.get("customer")||"",note:f.get("note")||"",paid_amount:f.get("paid")||"0"
       }));
   }
 
@@ -126,6 +128,13 @@ class MaterialkostenPanel extends HTMLElement {
       }));
   }
 
+  payment(project){
+    const paid=Number(project.paid_cents||0);
+    const balance=paid-Math.round(Number(project.kosten||0)*100);
+    const euro=cents=>new Intl.NumberFormat("de-AT",{style:"currency",currency:"EUR"}).format(cents/100);
+    return {paid:euro(paid),label:balance>0?"Guthaben":balance<0?"Offener Betrag":"Ausgeglichen",amount:euro(Math.abs(balance))};
+  }
+
   status(id,status){return this.call("update_project_status",{project_id:id,status})}
   async remove(id,name){if(confirm(`Auftrag "${name}" wirklich löschen?`)){await this.call("remove_project",{project_id:id});this._selectedProject=null;this.render()}}
   async removeItem(id,name){
@@ -172,6 +181,7 @@ class MaterialkostenPanel extends HTMLElement {
       const items=selected.material_positionen||[];
       const works=selected.arbeitspositionen||[];
       const matTotal=Number(selected.material||0), workTotal=Number(selected.arbeitszeit||0), total=Number(selected.kosten||0);
+      const payment=this.payment(selected);
       this.innerHTML+=`<div class="wrap">
         <div class="actions"><button class="back" id="back">← Aufträge</button></div>
         <div class="detail-head">
@@ -196,6 +206,8 @@ class MaterialkostenPanel extends HTMLElement {
           <div class="card"><div class="meta-label">Material</div><div class="meta-value">${matTotal.toFixed(2)} €</div></div>
           <div class="card"><div class="meta-label">Arbeitszeit</div><div class="meta-value">${workTotal.toFixed(2)} €</div></div>
           <div class="card"><div class="meta-label">Gesamt</div><div class="meta-value">${total.toFixed(2)} €</div></div>
+          <div class="card"><div class="meta-label">Bereits bezahlt</div><div class="meta-value">${payment.paid}</div></div>
+          <div class="card"><div class="meta-label">${payment.label}</div><div class="meta-value">${payment.amount}</div></div>
         </div>
 
         <div class="cards">
@@ -243,7 +255,7 @@ class MaterialkostenPanel extends HTMLElement {
       ${ps.length?ps.map(p=>`<div class="project" data-id="${p.id}">
         <div class="prow">
           <div><div class="name">${this.esc((p.order_number||p.auftragsnummer)? (p.order_number||p.auftragsnummer)+" – ":"")}${this.esc(p.name)}</div><div class="sub">${this.esc(p.customer||"Kein Kunde")} · ${this.esc(p.status||"offen")}</div></div>
-          <div class="cost"><div class="break">Material ${Number(p.material||0).toFixed(2)} € · Arbeit ${Number(p.arbeitszeit||0).toFixed(2)} €</div>${Number(p.kosten||0).toFixed(2)} €</div>
+          <div class="cost"><div class="break">Material ${Number(p.material||0).toFixed(2)} € · Arbeit ${Number(p.arbeitszeit||0).toFixed(2)} €</div>${Number(p.kosten||0).toFixed(2)} €<div class="break">${this.payment(p).label}: ${this.payment(p).amount}</div></div>
           <span>›</span>
         </div>
       </div>`).join(""):`<div class="empty">Noch keine Aufträge.</div>`}

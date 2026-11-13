@@ -15,13 +15,17 @@ add_project:
             - abgeschlossen
 update_project:
   name: Auftrag bearbeiten
-  description: Ändert nur die angegebenen Textfelder. Positionen, Status und Zeitstempel bleiben erhalten.
+  description: Ändert die angegebenen Auftragsfelder. Positionen, Status und Zeitstempel bleiben erhalten.
   fields:
     project_id: {required: true, selector: {text: {}}}
     name: {name: Auftragsname, selector: {text: {}}}
     customer: {name: Kunde, selector: {text: {}}}
     order_number: {name: Auftragsnummer, selector: {text: {}}}
     note: {name: Notiz, selector: {text: {multiline: true}}}
+    paid_amount:
+      name: Bereits bezahlt
+      description: Bisher insgesamt erhaltener Betrag in Euro. Ersetzt den vorherigen Zahlbetrag.
+      selector: {number: {min: 0, max: 999999999999.99, step: 0.01, mode: box, unit_of_measurement: EUR}}
 remove_project:
   name: Projekt löschen
   fields:
