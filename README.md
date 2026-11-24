@@ -121,3 +121,10 @@ Unter **Auftrag bearbeiten → Bereits bezahlt (€)** den bisher insgesamt erha
 ## v0.7.16
 
 Offene und laufende Aufträge stehen vor abgeschlossenen Aufträgen. Innerhalb beider Gruppen erscheinen die neuesten Aufträge zuerst.
+
+## v0.7.17
+
+- Material und Arbeitszeit zeigen den Buchungszeitpunkt. Neue Positionen speichern Datum und Uhrzeit unveränderlich in UTC; die Anzeige nutzt die in Home Assistant eingestellte Zeitzone.
+- Bei älteren Materialpositionen erscheint das bereits gespeicherte Buchungsdatum ohne erfundene Uhrzeit.
+- Bei älteren Arbeitszeitpositionen ist der Buchungszeitpunkt nicht gespeichert; das Arbeitsdatum bleibt separat sichtbar.
+- Nachträgliches Bearbeiten verändert den Buchungszeitpunkt nicht. Keine Datenmigration oder Änderungen bestehender Positionen.
