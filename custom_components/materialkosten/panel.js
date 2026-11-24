@@ -1,7 +1,7 @@
 // Module scope prevents global class redeclarations. Never reuse the legacy
 // element: browsers cannot replace a custom element once it is registered.
 const panelElement = new URL(import.meta.url).searchParams.get("element")
-  || "materialkosten-panel-v0-7-16";
+  || "materialkosten-panel-v0-7-17";
 class MaterialkostenPanel extends HTMLElement {
   set hass(hass){
     this._hass=hass;
@@ -135,6 +135,21 @@ class MaterialkostenPanel extends HTMLElement {
     return {paid:euro(paid),label:balance>0?"Guthaben":balance<0?"Offener Betrag":"Ausgeglichen",amount:euro(Math.abs(balance))};
   }
 
+  bookingText(entry,material=false){
+    if(entry.booked_at){
+      const timestamp=new Date(entry.booked_at);
+      if(Number.isFinite(timestamp.getTime())){
+        const options={year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",timeZone:this._hass?.config?.time_zone};
+        return `Gebucht am: ${timestamp.toLocaleString("de-AT",options)}`;
+      }
+    }
+    if(material && /^\d{4}-\d{2}-\d{2}$/.test(entry.date||"")){
+      const [year,month,day]=entry.date.split("-");
+      return `Gebucht am: ${day}.${month}.${year} (Uhrzeit nicht gespeichert)`;
+    }
+    return "Buchungszeitpunkt nicht gespeichert (älterer Eintrag)";
+  }
+
   status(id,status){return this.call("update_project_status",{project_id:id,status})}
   async remove(id,name){if(confirm(`Auftrag "${name}" wirklich löschen?`)){await this.call("remove_project",{project_id:id});this._selectedProject=null;this.render()}}
   async removeItem(id,name){
@@ -212,10 +227,10 @@ class MaterialkostenPanel extends HTMLElement {
 
         <div class="cards">
           <div class="card"><div class="card-title">Gebuchtes Material</div>
-            ${items.length?items.map(i=>`<div class="row"><div class="row-main"><b>${this.esc(i.material)}</b><div class="sub">${Number(i.quantity).toLocaleString("de-DE")} ${this.esc(i.unit)} × ${Number(i.unit_price).toFixed(2)} €${i.note?` · ${this.esc(i.note)}`:""}</div></div><div class="row-actions"><b class="position-total">${(Number(i.quantity)*Number(i.unit_price)).toFixed(2)} €</b><button class="back edit-item" data-id="${this.esc(i.id)}" aria-label="Materialposition bearbeiten">Bearbeiten</button><button class="delete-position del-item" title="Position löschen" data-id="${this.esc(i.id)}" data-name="${this.esc(i.material)}">✕</button></div></div>`).join(""):`<div class="empty">Noch kein Material gebucht.</div>`}
+            ${items.length?items.map(i=>`<div class="row"><div class="row-main"><b>${this.esc(i.material)}</b><div class="sub">${Number(i.quantity).toLocaleString("de-DE")} ${this.esc(i.unit)} × ${Number(i.unit_price).toFixed(2)} €${i.note?` · ${this.esc(i.note)}`:""}</div><div class="sub">${this.esc(this.bookingText(i,true))}</div></div><div class="row-actions"><b class="position-total">${(Number(i.quantity)*Number(i.unit_price)).toFixed(2)} €</b><button class="back edit-item" data-id="${this.esc(i.id)}" aria-label="Materialposition bearbeiten">Bearbeiten</button><button class="delete-position del-item" title="Position löschen" data-id="${this.esc(i.id)}" data-name="${this.esc(i.material)}">✕</button></div></div>`).join(""):`<div class="empty">Noch kein Material gebucht.</div>`}
           </div>
           <div class="card"><div class="card-title">Arbeitszeit</div>
-            ${works.length?works.map(w=>`<div class="row"><div class="row-main"><b>${this.esc(w.description)}</b><div class="sub">${this.esc(w.date||"")} · ${Number(w.hours).toFixed(2)} Std. × ${Number(w.hourly_rate).toFixed(2)} €</div></div><div class="row-actions"><b class="position-total">${(Number(w.hours)*Number(w.hourly_rate)).toFixed(2)} €</b><button class="back edit-work" data-id="${this.esc(w.id)}" aria-label="Arbeitszeit bearbeiten">Bearbeiten</button><button class="delete-position del-work" title="Arbeitszeit löschen" data-id="${this.esc(w.id)}" data-name="${this.esc(w.description)}">✕</button></div></div>`).join(""):`<div class="empty">Noch keine Arbeitszeit erfasst.</div>`}
+            ${works.length?works.map(w=>`<div class="row"><div class="row-main"><b>${this.esc(w.description)}</b><div class="sub">Arbeitsdatum: ${this.esc(w.date||"nicht angegeben")} · ${Number(w.hours).toFixed(2)} Std. × ${Number(w.hourly_rate).toFixed(2)} €</div><div class="sub">${this.esc(this.bookingText(w))}</div></div><div class="row-actions"><b class="position-total">${(Number(w.hours)*Number(w.hourly_rate)).toFixed(2)} €</b><button class="back edit-work" data-id="${this.esc(w.id)}" aria-label="Arbeitszeit bearbeiten">Bearbeiten</button><button class="delete-position del-work" title="Arbeitszeit löschen" data-id="${this.esc(w.id)}" data-name="${this.esc(w.description)}">✕</button></div></div>`).join(""):`<div class="empty">Noch keine Arbeitszeit erfasst.</div>`}
           </div>
         </div>
 

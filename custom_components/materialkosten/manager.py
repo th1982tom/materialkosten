@@ -1,7 +1,7 @@
 """Persistent data manager for Materialkosten."""
 from __future__ import annotations
 
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from decimal import Decimal, InvalidOperation
 from math import isfinite
 from uuid import uuid4
@@ -129,7 +129,8 @@ class MaterialManager:
         item = {
             "id": uuid4().hex, "project_id": project_id, "material": material,
             "quantity": float(quantity), "unit": unit, "unit_price": float(unit_price),
-            "note": note, "date": date.today().isoformat()
+            "note": note, "date": date.today().isoformat(),
+            "booked_at": datetime.now(timezone.utc).isoformat(),
         }
         self.data["items"].append(item)
         if save_to_catalog and not any(
@@ -199,6 +200,7 @@ class MaterialManager:
             "description": description,
             "hours": float(hours),
             "hourly_rate": float(hourly_rate),
+            "booked_at": datetime.now(timezone.utc).isoformat(),
         }
         self.data["work"].append(item)
         await self.async_save()
