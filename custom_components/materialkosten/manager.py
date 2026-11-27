@@ -4,6 +4,7 @@ from __future__ import annotations
 from datetime import date, datetime, timezone
 from decimal import Decimal, InvalidOperation
 from math import isfinite
+import re
 from uuid import uuid4
 from homeassistant.helpers.storage import Store
 
@@ -58,7 +59,36 @@ class MaterialManager:
             + sum(float(x["hours"]) * float(x["hourly_rate"]) for x in self.data["work"]), 2
         )
 
+    def require_editable(self, project_id):
+        project = self.data["projects"].get(project_id)
+        if project is None:
+            raise ValueError("Der Auftrag existiert nicht mehr.")
+        if project.get("status") == "abgeschlossen":
+            raise ValueError("Der Auftrag ist abgeschlossen. Bitte zuerst den Status ändern.")
+        return project
+
+    def next_order_number(self):
+        year = str(date.today().year)
+        numbers = [int(match.group(1)) for p in self.projects().values()
+                   if (match := re.fullmatch(re.escape(year) + r"-(\d+)", p.get("order_number", "")))]
+        # Persist the counter so deleted orders do not cause number reuse.
+        counters = self.data.get("order_counters", {})
+        number = max([counters.get(year, 0), *numbers]) + 1
+        self.data.setdefault("order_counters", {})[year] = number
+        return f"{year}-{number:03d}"
+
+    @staticmethod
+    def time_range(start, end):
+        if not all(isinstance(t, str) and re.fullmatch(r"(?:[01]\d|2[0-3]):[0-5]\d", t) for t in (start, end)):
+            raise ValueError("Bitte Von und Bis als gültige Uhrzeiten eingeben.")
+        minutes = lambda t: int(t[:2]) * 60 + int(t[3:])
+        duration = (minutes(end) - minutes(start)) % 1440
+        if not duration:
+            raise ValueError("Von und Bis dürfen nicht gleich sein.")
+        return duration / 60
+
     async def add_project(self, name, customer="", note="", order_number="", status="offen"):
+        order_number = order_number.strip() or self.next_order_number()
         pid = uuid4().hex
         self.data["projects"][pid] = {
             "id": pid, "name": name, "customer": customer, "note": note,
@@ -69,6 +99,7 @@ class MaterialManager:
         return pid
 
     async def update_project(self, project_id, **changes):
+        self.require_editable(project_id)
         project = self.data["projects"].get(project_id)
         if project is None:
             raise ValueError("Der Auftrag existiert nicht mehr.")
@@ -109,11 +140,14 @@ class MaterialManager:
         await self.async_save()
 
     async def remove_project(self, project_id):
+        self.require_editable(project_id)
         self.data["projects"].pop(project_id, None)
         self.data["items"] = [x for x in self.data["items"] if x["project_id"] != project_id]
+        self.data["work"] = [x for x in self.data["work"] if x["project_id"] != project_id]
         await self.async_save()
 
     async def add_item(self, project_id, material, quantity, unit, unit_price=0, note="", save_to_catalog=False):
+        self.require_editable(project_id)
         material, unit = str(material).strip(), str(unit).strip()
         if unit_price is None or (isinstance(unit_price, str) and not unit_price.strip()):
             unit_price = 0
@@ -150,6 +184,7 @@ class MaterialManager:
         item = next((x for x in self.data["items"] if x["id"] == item_id), None)
         if item is None:
             raise ValueError("Die Materialposition existiert nicht mehr.")
+        self.require_editable(item["project_id"])
         if changes.keys() - {"material", "quantity", "unit", "unit_price", "note"}:
             raise ValueError("Unbekanntes Materialfeld.")
         for key in ("material", "unit", "note"):
@@ -177,6 +212,9 @@ class MaterialManager:
             await self.async_save()
 
     async def remove_item(self, item_id):
+        item = next((x for x in self.data["items"] if x["id"] == item_id), None)
+        if item is not None:
+            self.require_editable(item["project_id"])
         self.data["items"] = [x for x in self.data["items"] if x["id"] != item_id]
         await self.async_save()
 
@@ -192,7 +230,13 @@ class MaterialManager:
         self.data["materials"].pop(material_id, None)
         await self.async_save()
 
-    async def add_work(self, project_id, work_date, description, hours, hourly_rate):
+    async def add_work(self, project_id, work_date, description, hours=None, hourly_rate=0, start_time=None, end_time=None):
+        self.require_editable(project_id)
+        if start_time is not None or end_time is not None:
+            hours = self.time_range(start_time, end_time)
+        hours, hourly_rate = float(hours), float(hourly_rate)
+        if not isfinite(hours) or hours <= 0 or not isfinite(hourly_rate) or hourly_rate < 0:
+            raise ValueError("Dauer muss positiv und Stundensatz mindestens null sein.")
         item = {
             "id": uuid4().hex,
             "project_id": project_id,
@@ -202,6 +246,8 @@ class MaterialManager:
             "hourly_rate": float(hourly_rate),
             "booked_at": datetime.now(timezone.utc).isoformat(),
         }
+        if start_time is not None:
+            item.update(start_time=start_time, end_time=end_time)
         self.data["work"].append(item)
         await self.async_save()
         return item
@@ -210,8 +256,15 @@ class MaterialManager:
         work = next((x for x in self.data["work"] if x["id"] == work_id), None)
         if work is None:
             raise ValueError("Die Arbeitszeitposition existiert nicht mehr.")
-        if changes.keys() - {"date", "description", "hours", "hourly_rate"}:
+        self.require_editable(work["project_id"])
+        if changes.keys() - {"date", "description", "hours", "hourly_rate", "start_time", "end_time"}:
             raise ValueError("Unbekanntes Arbeitszeitfeld.")
+        if "start_time" in changes or "end_time" in changes:
+            start = changes.get("start_time", work.get("start_time"))
+            end = changes.get("end_time", work.get("end_time"))
+            changes.update(start_time=start, end_time=end, hours=self.time_range(start, end))
+        elif "hours" in changes and work.get("start_time"):
+            raise ValueError("Bitte Von und Bis statt Stunden ändern.")
         for key in ("date", "description"):
             if key in changes:
                 if not isinstance(changes[key], str):
@@ -236,5 +289,8 @@ class MaterialManager:
             await self.async_save()
 
     async def remove_work(self, work_id):
+        work = next((x for x in self.data["work"] if x["id"] == work_id), None)
+        if work is not None:
+            self.require_editable(work["project_id"])
         self.data["work"] = [x for x in self.data["work"] if x["id"] != work_id]
         await self.async_save()

@@ -110,8 +110,10 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
             call.data["project_id"],
             call.data.get("date", ""),
             call.data["description"],
-            call.data["hours"],
+            call.data.get("hours"),
             call.data["hourly_rate"],
+            start_time=call.data.get("start_time"),
+            end_time=call.data.get("end_time"),
         )
 
     async def remove_work(call: ServiceCall):

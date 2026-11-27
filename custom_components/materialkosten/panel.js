@@ -1,7 +1,7 @@
 // Module scope prevents global class redeclarations. Never reuse the legacy
 // element: browsers cannot replace a custom element once it is registered.
 const panelElement = new URL(import.meta.url).searchParams.get("element")
-  || "materialkosten-panel-v0-7-17";
+  || "materialkosten-panel-v0-7-18";
 class MaterialkostenPanel extends HTMLElement {
   set hass(hass){
     this._hass=hass;
@@ -34,12 +34,12 @@ class MaterialkostenPanel extends HTMLElement {
 
   project(){
     this.dialog("Neuer Auftrag",`
-      <label>Auftragsnummer<input name="order" placeholder="2026-001"></label>
+      <div class="sub">Die Auftragsnummer wird beim Speichern automatisch vergeben.</div>
       <label>Projektname<input name="name" required autofocus></label>
       <label>Kunde<input name="customer"></label>
       <label>Status<select name="status"><option value="offen">Offen</option><option value="in_bearbeitung">In Bearbeitung</option><option value="abgeschlossen">Abgeschlossen</option></select></label>
       <label>Notiz<textarea name="note"></textarea></label>`,
-      async f=>this.call("add_project",{order_number:f.get("order")||"",name:f.get("name"),customer:f.get("customer")||"",status:f.get("status"),note:f.get("note")||""}))
+      async f=>this.call("add_project",{name:f.get("name"),customer:f.get("customer")||"",status:f.get("status"),note:f.get("note")||""}))
   }
 
   editProject(project){
@@ -97,10 +97,10 @@ class MaterialkostenPanel extends HTMLElement {
 
   work(project){
     this.dialog("Arbeitszeit erfassen",`
-      <div class="grid"><label>Datum<input name="date" type="date" value="${new Date().toISOString().slice(0,10)}"></label><label>Stunden<input name="hours" type="number" step="0.25" min="0.01" value="1"></label></div>
-      <label>Tätigkeit<input name="description" required placeholder="Verkabelung"></label>
+      <div class="grid"><label>Datum<input name="date" type="date" value="${new Date().toISOString().slice(0,10)}"></label></div>
+      <div class="grid"><label>Von<input name="start" type="time" required></label><label>Bis<input name="end" type="time" required></label></div><div class="sub">Bis vor Von bedeutet Folgetag. Die Dauer wird automatisch berechnet.</div><label>Tätigkeit<input name="description" required placeholder="Verkabelung"></label>
       <label>Stundensatz (€)<input name="rate" type="number" step="0.50" min="0" value="45"></label>`,
-      async f=>this.call("add_work",{project_id:project,date:f.get("date"),description:f.get("description"),hours:Number(f.get("hours")),hourly_rate:Number(f.get("rate"))}))
+      async f=>this.call("add_work",{project_id:project,date:f.get("date"),description:f.get("description"),start_time:f.get("start"),end_time:f.get("end"),hourly_rate:Number(f.get("rate"))}))
   }
 
   editItem(item){
@@ -119,12 +119,13 @@ class MaterialkostenPanel extends HTMLElement {
   editWork(work){
     if(!work)return;
     this.dialog("Arbeitszeit bearbeiten",`
+      ${!work.start_time?`<div class="sub">Bisher: ${this.esc(work.hours)} Stunden. Uhrzeiten wurden nicht gespeichert. Für eine Änderung bitte Von und Bis ergänzen.</div>`:""}
       <label>Datum<input name="date" type="date" value="${this.esc(work.date||"")}"></label>
       <label>Tätigkeit<input name="description" required value="${this.esc(work.description)}"></label>
-      <div class="grid"><label>Stunden<input name="hours" type="number" step="any" min="0.01" required value="${this.esc(work.hours)}"></label><label>Stundensatz (€)<input name="rate" type="number" step="any" min="0" required value="${this.esc(work.hourly_rate)}"></label></div>`,
+      <div class="grid"><label>Von<input name="start" type="time" required value="${this.esc(work.start_time||"")}"></label><label>Bis<input name="end" type="time" required value="${this.esc(work.end_time||"")}"></label><label>Stundensatz (€)<input name="rate" type="number" step="any" min="0" required value="${this.esc(work.hourly_rate)}"></label></div>`,
       async f=>this.call("update_work",{
         work_id:work.id,date:f.get("date")||"",description:f.get("description"),
-        hours:Number(f.get("hours")),hourly_rate:Number(f.get("rate"))
+        start_time:f.get("start"),end_time:f.get("end"),hourly_rate:Number(f.get("rate"))
       }));
   }
 
@@ -180,7 +181,7 @@ class MaterialkostenPanel extends HTMLElement {
     this.innerHTML=`<style>
       :host{display:block;padding:24px;box-sizing:border-box}.wrap{max-width:1100px;margin:auto}
       .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}.title{font-size:28px;font-weight:600}.sub{color:var(--secondary-text-color);font-size:13px}
-      .actions{display:flex;gap:8px;margin-bottom:20px}button{border:0;border-radius:8px;padding:10px 14px;background:var(--primary-color);color:white;cursor:pointer}button.delete{background:var(--secondary-background-color);color:var(--primary-text-color)}button.back{background:var(--secondary-background-color);color:var(--primary-text-color)}
+      .actions{display:flex;gap:8px;margin-bottom:20px}button{border:0;border-radius:8px;padding:10px 14px;background:var(--primary-color);color:white;cursor:pointer}button:disabled{opacity:.45;cursor:not-allowed}button.delete{background:var(--secondary-background-color);color:var(--primary-text-color)}button.back{background:var(--secondary-background-color);color:var(--primary-text-color)}
       .section{font-size:18px;font-weight:600;border-top:1px solid var(--divider-color);padding:20px 0 8px}.project{padding:16px 0;border-bottom:1px solid var(--divider-color);cursor:pointer}.project:hover{background:var(--secondary-background-color)}
       .prow{display:grid;grid-template-columns:1fr auto auto;gap:16px;align-items:center}.name{font-weight:600;font-size:17px}.cost{font-weight:600;text-align:right}.break{font-size:12px;color:var(--secondary-text-color);text-align:right}
       .detail-head{display:flex;justify-content:space-between;gap:20px;align-items:flex-start;padding-bottom:18px;border-bottom:1px solid var(--divider-color)}.detail-meta{display:grid;grid-template-columns:repeat(2,minmax(150px,1fr));gap:10px 24px;margin-top:16px}.meta-label{font-size:12px;color:var(--secondary-text-color)}.meta-value{font-weight:500}
@@ -193,6 +194,7 @@ class MaterialkostenPanel extends HTMLElement {
     </style>`;
 
     if(selected){
+      const locked=selected.status==="abgeschlossen", disabled=locked?"disabled":"";
       const items=selected.material_positionen||[];
       const works=selected.arbeitspositionen||[];
       const matTotal=Number(selected.material||0), workTotal=Number(selected.arbeitszeit||0), total=Number(selected.kosten||0);
@@ -213,8 +215,9 @@ class MaterialkostenPanel extends HTMLElement {
           <div style="min-width:180px"><label>Status<select class="detail-status" data-id="${selected.id}"><option value="offen" ${selected.status==="offen"?"selected":""}>Offen</option><option value="in_bearbeitung" ${selected.status==="in_bearbeitung"?"selected":""}>In Bearbeitung</option><option value="abgeschlossen" ${selected.status==="abgeschlossen"?"selected":""}>Abgeschlossen</option></select></label></div>
         </div>
 
+        ${locked?`<p role="status">Dieser Auftrag ist abgeschlossen und gesperrt. Zum Bearbeiten zuerst den Status auf Offen oder In Bearbeitung ändern.</p>`:""}
         <div class="pactions">
-          <button id="editproject" class="back">Auftrag bearbeiten</button><button id="addm">＋ Material</button><button id="addw">＋ Arbeit</button><button id="newmat" class="back">＋ Materialstamm</button><button id="delete" class="delete">Auftrag löschen</button>
+          <button ${disabled} id="editproject" class="back">Auftrag bearbeiten</button><button ${disabled} id="addm">＋ Material</button><button ${disabled} id="addw">＋ Arbeit</button><button ${disabled} id="newmat" class="back">＋ Materialstamm</button><button ${disabled} id="delete" class="delete">Auftrag löschen</button>
         </div>
 
         <div class="summary">
@@ -227,10 +230,10 @@ class MaterialkostenPanel extends HTMLElement {
 
         <div class="cards">
           <div class="card"><div class="card-title">Gebuchtes Material</div>
-            ${items.length?items.map(i=>`<div class="row"><div class="row-main"><b>${this.esc(i.material)}</b><div class="sub">${Number(i.quantity).toLocaleString("de-DE")} ${this.esc(i.unit)} × ${Number(i.unit_price).toFixed(2)} €${i.note?` · ${this.esc(i.note)}`:""}</div><div class="sub">${this.esc(this.bookingText(i,true))}</div></div><div class="row-actions"><b class="position-total">${(Number(i.quantity)*Number(i.unit_price)).toFixed(2)} €</b><button class="back edit-item" data-id="${this.esc(i.id)}" aria-label="Materialposition bearbeiten">Bearbeiten</button><button class="delete-position del-item" title="Position löschen" data-id="${this.esc(i.id)}" data-name="${this.esc(i.material)}">✕</button></div></div>`).join(""):`<div class="empty">Noch kein Material gebucht.</div>`}
+            ${items.length?items.map(i=>`<div class="row"><div class="row-main"><b>${this.esc(i.material)}</b><div class="sub">${Number(i.quantity).toLocaleString("de-DE")} ${this.esc(i.unit)} × ${Number(i.unit_price).toFixed(2)} €${i.note?` · ${this.esc(i.note)}`:""}</div><div class="sub">${this.esc(this.bookingText(i,true))}</div></div><div class="row-actions"><b class="position-total">${(Number(i.quantity)*Number(i.unit_price)).toFixed(2)} €</b><button ${disabled} class="back edit-item" data-id="${this.esc(i.id)}" aria-label="Materialposition bearbeiten">Bearbeiten</button><button ${disabled} class="delete-position del-item" title="Position löschen" data-id="${this.esc(i.id)}" data-name="${this.esc(i.material)}">✕</button></div></div>`).join(""):`<div class="empty">Noch kein Material gebucht.</div>`}
           </div>
           <div class="card"><div class="card-title">Arbeitszeit</div>
-            ${works.length?works.map(w=>`<div class="row"><div class="row-main"><b>${this.esc(w.description)}</b><div class="sub">Arbeitsdatum: ${this.esc(w.date||"nicht angegeben")} · ${Number(w.hours).toFixed(2)} Std. × ${Number(w.hourly_rate).toFixed(2)} €</div><div class="sub">${this.esc(this.bookingText(w))}</div></div><div class="row-actions"><b class="position-total">${(Number(w.hours)*Number(w.hourly_rate)).toFixed(2)} €</b><button class="back edit-work" data-id="${this.esc(w.id)}" aria-label="Arbeitszeit bearbeiten">Bearbeiten</button><button class="delete-position del-work" title="Arbeitszeit löschen" data-id="${this.esc(w.id)}" data-name="${this.esc(w.description)}">✕</button></div></div>`).join(""):`<div class="empty">Noch keine Arbeitszeit erfasst.</div>`}
+            ${works.length?works.map(w=>`<div class="row"><div class="row-main"><b>${this.esc(w.description)}</b><div class="sub">Arbeitsdatum: ${this.esc(w.date||"nicht angegeben")} · ${w.start_time?`${this.esc(w.start_time)} – ${this.esc(w.end_time)}${w.end_time<w.start_time?" (Folgetag)":""} · `:""}${Number(w.hours).toFixed(2)} Std. × ${Number(w.hourly_rate).toFixed(2)} €</div><div class="sub">${this.esc(this.bookingText(w))}</div></div><div class="row-actions"><b class="position-total">${(Number(w.hours)*Number(w.hourly_rate)).toFixed(2)} €</b><button ${disabled} class="back edit-work" data-id="${this.esc(w.id)}" aria-label="Arbeitszeit bearbeiten">Bearbeiten</button><button ${disabled} class="delete-position del-work" title="Arbeitszeit löschen" data-id="${this.esc(w.id)}" data-name="${this.esc(w.description)}">✕</button></div></div>`).join(""):`<div class="empty">Noch keine Arbeitszeit erfasst.</div>`}
           </div>
         </div>
 
@@ -250,7 +253,7 @@ class MaterialkostenPanel extends HTMLElement {
         if(this._statusPending)this.render();
       };
       statusSelect.onchange=async()=>{
-        try{await this.status(selected.id,statusSelect.value)}
+        try{await this.status(selected.id,statusSelect.value);this._statusEditing=false;this.render()}
         catch(err){
           statusSelect.value=selected.status||"offen";
           alert(`Status konnte nicht gespeichert werden: ${err.message||err}`);

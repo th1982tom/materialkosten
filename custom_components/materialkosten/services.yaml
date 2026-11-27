@@ -79,7 +79,9 @@ add_work:
     project_id: {required: true, selector: {text: {}}}
     date: {selector: {date: {}}}
     description: {required: true, selector: {text: {}}}
-    hours: {required: true, selector: {number: {min: 0.01, mode: box, step: 0.25}}}
+    start_time: {name: Von (HH:MM), selector: {text: {}}}
+    end_time: {name: Bis (HH:MM), selector: {text: {}}}
+    hours: {name: Stunden (Bestandskompatibilität), selector: {number: {min: 0.01, mode: box, step: 0.25}}}
     hourly_rate: {required: true, selector: {number: {min: 0, mode: box, step: 0.50}}}
 
 update_work:
@@ -89,6 +91,8 @@ update_work:
     work_id: {required: true, selector: {text: {}}}
     date: {name: Datum, selector: {date: {}}}
     description: {name: Tätigkeit, selector: {text: {}}}
+    start_time: {name: Von (HH:MM), selector: {text: {}}}
+    end_time: {name: Bis (HH:MM), selector: {text: {}}}
     hours: {name: Stunden, selector: {number: {min: 0.01, mode: box, step: 0.01}}}
     hourly_rate: {name: Stundensatz, selector: {number: {min: 0, mode: box, step: 0.01}}}
 remove_work:
