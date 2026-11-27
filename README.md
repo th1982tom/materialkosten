@@ -128,3 +128,7 @@ Offene und laufende Aufträge stehen vor abgeschlossenen Aufträgen. Innerhalb b
 - Bei älteren Materialpositionen erscheint das bereits gespeicherte Buchungsdatum ohne erfundene Uhrzeit.
 - Bei älteren Arbeitszeitpositionen ist der Buchungszeitpunkt nicht gespeichert; das Arbeitsdatum bleibt separat sichtbar.
 - Nachträgliches Bearbeiten verändert den Buchungszeitpunkt nicht. Keine Datenmigration oder Änderungen bestehender Positionen.
+
+
+## v0.7.18
+Abgeschlossene Aufträge sind gegen Bearbeiten, Buchen und Löschen gesperrt, auch über Services. Statusänderungen bleiben möglich. Arbeitszeiten über Von/Bis eingeben; Bis vor Von gilt als Folgetag. Alte Stundenwerte bleiben erhalten, bei Bearbeitung werden Uhrzeiten ergänzt. Neue Aufträge erhalten automatisch die nächste Jahresnummer; gespeicherter Zähler verhindert Wiedervergabe gelöschter Nummern. Vorhandene Daten bleiben erhalten.
